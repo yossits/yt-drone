@@ -14,6 +14,22 @@
     --table-header-bg: #f8f9fa;
 }
 
+/* Medium Theme */
+.theme-medium {
+    --header-bg: #3a3a3a;
+    --sidebar-bg: #454545;
+    --content-bg: #3a3a3a;
+    --card-bg: #4a4a4a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --border-color: #555555;
+    --border-hover: #666666;
+    --hover-bg: #505050;
+    --active-bg: #5a5a5a;
+    --accent-color: #5a9fd4;
+    --table-header-bg: #454545;
+}
+
 /* Dark Theme */
 .theme-dark {
     --header-bg: #1a1a1a;
@@ -30,21 +46,25 @@
     --table-header-bg: #2d2d2d;
 }
 
+.theme-medium .badge-success,
 .theme-dark .badge-success {
     background: #155724;
     color: #d4edda;
 }
 
+.theme-medium .badge-warning,
 .theme-dark .badge-warning {
     background: #856404;
     color: #fff3cd;
 }
 
+.theme-medium .badge-danger,
 .theme-dark .badge-danger {
     background: #721c24;
     color: #f8d7da;
 }
 
+.theme-medium .badge-info,
 .theme-dark .badge-info {
     background: #0c5460;
     color: #d1ecf1;

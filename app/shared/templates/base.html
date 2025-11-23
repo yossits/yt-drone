@@ -16,9 +16,29 @@
           <button class="btn-icon" id="lang-toggle" title="שנה שפה">
             <span>HE</span>
           </button>
-          <button class="btn-icon" id="theme-toggle" title="שנה נושא">
-            <span>🌙</span>
-          </button>
+          <div class="theme-selector-wrapper">
+            <button class="btn-icon" id="theme-toggle" title="בחר ערכת נושא">
+              <span>🌙</span>
+            </button>
+            <!-- Theme Dropdown -->
+            <div class="theme-dropdown" id="theme-dropdown">
+              <button class="theme-option" data-theme="light">
+                <span class="theme-icon">☀️</span>
+                <span class="theme-name">בהיר</span>
+                <span class="theme-check" id="check-light">✓</span>
+              </button>
+              <button class="theme-option" data-theme="medium">
+                <span class="theme-icon">🌓</span>
+                <span class="theme-name">בינוני</span>
+                <span class="theme-check" id="check-medium">✓</span>
+              </button>
+              <button class="theme-option" data-theme="dark">
+                <span class="theme-icon">🌙</span>
+                <span class="theme-name">כהה</span>
+                <span class="theme-check" id="check-dark">✓</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>

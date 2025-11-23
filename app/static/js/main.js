@@ -1,30 +1,63 @@
-// Theme Toggle
+// Theme Selector
 document.addEventListener("DOMContentLoaded", function () {
   const themeToggle = document.getElementById("theme-toggle");
+  const themeDropdown = document.getElementById("theme-dropdown");
+  const themeOptions = document.querySelectorAll(".theme-option");
   const body = document.body;
 
-  // בדיקה אם יש theme שמור ב-localStorage
-  const savedTheme = localStorage.getItem("theme") || "light";
-  if (savedTheme === "dark") {
-    body.classList.remove("theme-light");
-    body.classList.add("theme-dark");
-    themeToggle.querySelector("span").textContent = "☀️";
+  // פונקציה לעדכון ערכת הנושא
+  function setTheme(theme) {
+    // הסרת כל ערכות הנושא
+    body.classList.remove("theme-light", "theme-medium", "theme-dark");
+    
+    // הוספת ערכת הנושא הנבחרת
+    body.classList.add(`theme-${theme}`);
+    
+    // עדכון localStorage
+    localStorage.setItem("theme", theme);
+    
+    // עדכון אייקון בכפתור
+    const icons = {
+      light: "☀️",
+      medium: "🌓",
+      dark: "🌙"
+    };
+    themeToggle.querySelector("span").textContent = icons[theme];
+    
+    // עדכון סימון בחלונית
+    themeOptions.forEach(option => {
+      option.classList.remove("active");
+      if (option.dataset.theme === theme) {
+        option.classList.add("active");
+      }
+    });
+    
+    // סגירת החלונית
+    themeDropdown.classList.remove("show");
   }
 
-  // טוגל נושא
-  themeToggle.addEventListener("click", function () {
-    const isDark = body.classList.contains("theme-dark");
+  // טעינת ערכת נושא שמורה
+  const savedTheme = localStorage.getItem("theme") || "light";
+  setTheme(savedTheme);
 
-    if (isDark) {
-      body.classList.remove("theme-dark");
-      body.classList.add("theme-light");
-      themeToggle.querySelector("span").textContent = "🌙";
-      localStorage.setItem("theme", "light");
-    } else {
-      body.classList.remove("theme-light");
-      body.classList.add("theme-dark");
-      themeToggle.querySelector("span").textContent = "☀️";
-      localStorage.setItem("theme", "dark");
+  // פתיחה/סגירה של חלונית בחירה
+  themeToggle.addEventListener("click", function (e) {
+    e.stopPropagation();
+    themeDropdown.classList.toggle("show");
+  });
+
+  // בחירת ערכת נושא מהרשימה
+  themeOptions.forEach(option => {
+    option.addEventListener("click", function () {
+      const selectedTheme = this.dataset.theme;
+      setTheme(selectedTheme);
+    });
+  });
+
+  // סגירת החלונית בלחיצה מחוץ לה
+  document.addEventListener("click", function (e) {
+    if (!themeToggle.contains(e.target) && !themeDropdown.contains(e.target)) {
+      themeDropdown.classList.remove("show");
     }
   });
 

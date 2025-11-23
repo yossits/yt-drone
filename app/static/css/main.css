@@ -56,6 +56,73 @@ body {
 .header-controls {
     display: flex;
     gap: var(--spacing-sm);
+    position: relative;
+}
+
+/* Theme Selector Wrapper */
+.theme-selector-wrapper {
+    position: relative;
+}
+
+/* Theme Dropdown */
+.theme-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    padding: var(--spacing-sm);
+    display: none;
+    z-index: 1001;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.theme-dropdown.show {
+    display: flex;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: transparent;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    color: var(--text-primary);
+    text-align: right;
+    width: 100%;
+    transition: var(--transition);
+    font-size: 14px;
+}
+
+.theme-option:hover {
+    background: var(--hover-bg);
+}
+
+.theme-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.theme-name {
+    flex: 1;
+}
+
+.theme-check {
+    font-size: 16px;
+    color: var(--accent-color);
+    display: none;
+}
+
+.theme-option.active .theme-check {
+    display: inline;
 }
 
 .btn-icon {
