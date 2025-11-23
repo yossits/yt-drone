@@ -1,0 +1,84 @@
+{% extends "base.html" %} {% block title %}Dashboard - Drone Control Center{%
+endblock %} {% block content %}
+<h1>Dashboard</h1>
+
+<div class="grid grid-3">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מצב מערכת</h3>
+    </div>
+    <div class="card-body">
+      <p>
+        <strong>סטטוס:</strong>
+        <span class="badge badge-success">{{ system_status }}</span>
+      </p>
+      <p><strong>עדכון אחרון:</strong> {{ last_update }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מצב סוללה</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>רמת סוללה:</strong> {{ battery_level }}%</p>
+      <div
+        style="
+          width: 100%;
+          height: 20px;
+          background: #e9ecef;
+          border-radius: 10px;
+          margin-top: 8px;
+        "
+      >
+        <div
+          style="width: {{ battery_level }}%; height: 100%; background: #28a745; border-radius: 10px;"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">סטטוס חיבור</h3>
+    </div>
+    <div class="card-body">
+      <p>
+        <strong>חיבור:</strong>
+        <span class="badge badge-success">{{ connection_status }}</span>
+      </p>
+      <p><strong>עוצמת אות:</strong> {{ signal_strength }}%</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">זמן טיסה</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>זמן כולל:</strong> {{ flight_time }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מיקום</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>גובה:</strong> {{ altitude }} מטר</p>
+      <p><strong>מהירות:</strong> {{ speed }} m/s</p>
+      <p><strong>לוויינים GPS:</strong> {{ gps_satellites }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מידע נוסף</h3>
+    </div>
+    <div class="card-body">
+      <p>כאן יוצג מידע נוסף על מצב הרחפן והמערכת בעתיד.</p>
+      <p>כרגע זהו ממשק UI בלבד עם נתוני דמו.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

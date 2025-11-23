@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Users - Drone Control Center{% endblock %}
+
+{% block content %}
+<h1>Users</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">משתמשים והרשאות</h2>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>שם משתמש</th>
+                    <th>אימייל</th>
+                    <th>תפקיד</th>
+                    <th>סטטוס</th>
+                    <th>כניסה אחרונה</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge {% if user.role == 'Administrator' %}badge-danger{% elif user.role == 'Pilot' %}badge-warning{% else %}badge-info{% endif %}">
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {% if user.status == 'Active' %}badge-success{% else %}badge-danger{% endif %}">
+                            {{ user.status }}
+                        </span>
+                    </td>
+                    <td>{{ user.last_login }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <button style="padding: 10px 20px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+            הוסף משתמש חדש
+        </button>
+        <p style="margin-top: 16px; font-size: 12px; color: var(--text-secondary);">
+            <em>כפתור זה יהיה פעיל בעתיד עם מערכת ניהול משתמשים אמיתית.</em>
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p><em>כאן יוצגו משתמשים נוספים והרשאות בעתיד, כולל אפשרות להוספה, עריכה ומחיקה של משתמשים.</em></p>
+    </div>
+</div>
+{% endblock %}
+

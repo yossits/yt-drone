@@ -1,0 +1,91 @@
+{% extends "base.html" %} {% block title %}Flight Controller - Drone Control
+Center{% endblock %} {% block content %}
+<h1>Flight Controller</h1>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">פרמטרי טיסה</h2>
+  </div>
+  <div class="card-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>פרמטר</th>
+          <th>ערך</th>
+          <th>סטטוס</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>מצב טיסה</td>
+          <td>{{ flight_mode }}</td>
+          <td><span class="badge badge-info">Active</span></td>
+        </tr>
+        <tr>
+          <td>סטטוס נשק</td>
+          <td>{{ arm_status }}</td>
+          <td><span class="badge badge-success">Ready</span></td>
+        </tr>
+        <tr>
+          <td>Failsafe</td>
+          <td>{{ failsafe }}</td>
+          <td><span class="badge badge-success">OK</span></td>
+        </tr>
+        <tr>
+          <td>Throttle</td>
+          <td>{{ throttle }}%</td>
+          <td><span class="badge badge-info">Normal</span></td>
+        </tr>
+        <tr>
+          <td>Roll</td>
+          <td>{{ roll }}°</td>
+          <td><span class="badge badge-info">Normal</span></td>
+        </tr>
+        <tr>
+          <td>Pitch</td>
+          <td>{{ pitch }}°</td>
+          <td><span class="badge badge-info">Normal</span></td>
+        </tr>
+        <tr>
+          <td>Yaw</td>
+          <td>{{ yaw }}°</td>
+          <td><span class="badge badge-info">Normal</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מצב סוללה</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>מתח:</strong> {{ battery_voltage }}V</p>
+      <p><strong>זרם:</strong> {{ battery_current }}A</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">מצב מערכת</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>עומס CPU:</strong> {{ cpu_load }}%</p>
+      <p><strong>שימוש בזיכרון:</strong> {{ memory_usage }}%</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <p>
+      <em
+        >כאן יוצגו פרמטרים נוספים של Flight Controller בעתיד, כולל חיבור אמיתי
+        ל-MAVLink.</em
+      >
+    </p>
+  </div>
+</div>
+{% endblock %}
