@@ -68,9 +68,64 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Language toggle clicked");
   });
 
-  // Mobile Sidebar Toggle (אם נדרש)
-  const sidebar = document.querySelector(".sidebar");
-  if (window.innerWidth <= 768) {
-    // לוגיקה למובייל בעתיד
+  // Sidebar Toggle
+  const sidebarToggle = document.getElementById("sidebar-toggle");
+  const sidebar = document.getElementById("sidebar");
+
+  // בדיקה שהאלמנטים קיימים
+  if (!sidebarToggle) {
+    console.error("sidebar-toggle button not found");
+  }
+  if (!sidebar) {
+    console.error("sidebar element not found");
+  }
+
+  if (sidebarToggle && sidebar) {
+    console.log("Sidebar toggle initialized successfully");
+    
+    // פונקציה לכיווץ/הרחבת התפריט
+    function toggleSidebar(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log("Toggle button clicked");
+      
+      sidebar.classList.toggle("collapsed");
+      document.body.classList.toggle("sidebar-collapsed");
+      
+      // שמירת מצב ב-localStorage
+      const isCollapsed = sidebar.classList.contains("collapsed");
+      localStorage.setItem("sidebarCollapsed", isCollapsed);
+      
+      // עדכון header
+      const header = document.querySelector(".header");
+      if (header) {
+        if (isCollapsed) {
+          header.classList.add("collapsed");
+        } else {
+          header.classList.remove("collapsed");
+        }
+      }
+      
+      console.log("Sidebar collapsed:", isCollapsed);
+    }
+
+    // טעינת מצב שמור
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    if (savedState === "true") {
+      sidebar.classList.add("collapsed");
+      document.body.classList.add("sidebar-collapsed");
+      const header = document.querySelector(".header");
+      if (header) {
+        header.classList.add("collapsed");
+      }
+      console.log("Loaded saved collapsed state");
+    }
+
+    // הוספת event listener לכפתור
+    sidebarToggle.addEventListener("click", toggleSidebar);
+    console.log("Event listener added to sidebar toggle");
+  } else {
+    console.error("Failed to initialize sidebar toggle - missing elements");
   }
 });

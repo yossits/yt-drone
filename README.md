@@ -25,10 +25,10 @@ pip install -r requirements.txt
 ## הרצה
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-האפליקציה תהיה זמינה בכתובת: http://localhost:8000
+האפליקציה תהיה זמינה בכתובת: http://0.0.0.0:8001 או http://localhost:8001
 
 ## מבנה הפרויקט
 
