@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Event listener added to sidebar toggle");
     
     // במובייל - סגירת sidebar בלחיצה מחוץ לו
-    if (window.innerWidth <= 768) {
+  if (window.innerWidth <= 768) {
       document.addEventListener("click", function(e) {
         if (sidebar && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
           sidebar.classList.remove("open");

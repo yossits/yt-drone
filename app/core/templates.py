@@ -26,6 +26,13 @@ env = Environment(
     autoescape=select_autoescape(["html", "xml"]),
 )
 
+# הוספת helper function ל-Jinja2
+def get_path(request):
+    """מחזיר את ה-path של ה-request ללא trailing slash"""
+    path = str(request.url.path).rstrip('/')
+    return path if path else '/'
+
+env.globals['get_path'] = get_path
 
 # Wrapper ל-Jinja2Templates שתומך במספר directories
 class CustomJinja2Templates:

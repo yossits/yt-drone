@@ -236,7 +236,7 @@ body {
 
 .sidebar.collapsed .nav-item {
     justify-content: center;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
 }
 
 .sidebar-nav {
@@ -249,11 +249,12 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
     color: var(--text-secondary);
     text-decoration: none;
     transition: var(--transition);
     border-right: 3px solid transparent;
+    margin: 0px 10px 0px 10px;
 }
 
 .nav-item:hover {
@@ -262,10 +263,23 @@ body {
 }
 
 .nav-item.active {
-    background: var(--active-bg);
-    color: var(--text-primary);
-    border-right-color: var(--accent-color);
-    font-weight: 500;
+    background: var(--accent-bg);
+    border-right: 1px solid var(--accent-color);
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.nav-item.active .nav-text {
+    color: #ff8c00 !important;
+    font-weight: 600;
+}
+
+.nav-item.active:hover {
+    background: var(--accent-bg);
+}
+
+.nav-item.active:hover .nav-text {
+    color: #ff8c00 !important;
 }
 
 .nav-icon {
