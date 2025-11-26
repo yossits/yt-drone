@@ -36,7 +36,7 @@ body {
     background: var(--header-bg);
     border-bottom: 1px solid var(--border-color);
     z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px var(--shadow-sm);
     transition: left var(--sidebar-transition);
 }
 
@@ -103,7 +103,7 @@ body {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--shadow-md);
     min-width: 180px;
     padding: var(--spacing-sm);
     display: none;
@@ -295,7 +295,7 @@ body {
 }
 
 .nav-item.active .nav-text {
-    color: #ff8c00 !important;
+    color: var(--nav-active-text) !important;
     font-weight: 600;
 }
 
@@ -304,7 +304,7 @@ body {
 }
 
 .nav-item.active:hover .nav-text {
-    color: #ff8c00 !important;
+    color: var(--nav-active-text) !important;
 }
 
 .nav-icon {
@@ -341,7 +341,7 @@ body.sidebar-collapsed .main-content {
     border-radius: var(--border-radius);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px var(--shadow-sm);
 }
 
 .card-header {
@@ -498,12 +498,18 @@ select {
     -moz-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+    /* Note: SVG arrow color hard-coded in data URI. Consider using CSS mask or icon font for theme support */
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
     background-size: 12px !important;
 }
 
-select:hover,
+select:hover {
+    cursor: pointer !important;
+    background-color: var(--hover-bg) !important;
+    border-color: var(--border-hover) !important;
+}
+
 select:focus {
     cursor: pointer !important;
 }
@@ -517,6 +523,7 @@ select:focus {
     cursor: pointer !important;
     padding-right: 35px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    /* Note: SVG arrow color hard-coded in data URI. Consider using CSS mask or icon font for theme support */
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 12px;
@@ -524,22 +531,128 @@ select:focus {
 
 .form-select:hover {
     cursor: pointer !important;
+    background-color: var(--hover-bg) !important;
+    border-color: var(--border-hover) !important;
 }
 
 .form-select:focus {
     cursor: pointer !important;
 }
 
+/* Global styling for all option elements - theme adaptive */
+option {
+    background-color: var(--input-bg, var(--card-bg)) !important;
+    background: var(--input-bg, var(--card-bg)) !important;
+    color: var(--text-primary) !important;
+    padding: 8px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+option:hover {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+option:checked,
+option:focus,
+option[selected] {
+    background-color: var(--accent-bg) !important;
+    background: var(--accent-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+select option:hover {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+select option:checked,
+select option:focus {
+    background-color: var(--accent-bg) !important;
+    background: var(--accent-bg) !important;
+    color: var(--text-primary) !important;
+}
+
 .form-select option {
-    background-color: var(--input-bg, var(--card-bg));
-    color: var(--text-primary);
+    background-color: var(--input-bg, var(--card-bg)) !important;
+    background: var(--input-bg, var(--card-bg)) !important;
+    color: var(--text-primary) !important;
+    padding: 8px;
+}
+
+.form-select option:hover {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-select option:checked,
+.form-select option:focus,
+.form-select option[selected] {
+    background-color: var(--accent-bg) !important;
+    background: var(--accent-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Additional rules to override browser default blue hover color for select options */
+select option {
+    background-color: var(--input-bg, var(--card-bg)) !important;
+    background: var(--input-bg, var(--card-bg)) !important;
+    color: var(--text-primary) !important;
+    /* Remove default browser blue highlight */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Override browser default blue hover for option elements */
+select option:hover,
+select option:active {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Firefox specific override */
+select option:not(:disabled):hover {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Chrome/Edge specific - try to override native dropdown styling */
+select::-ms-expand {
+    display: none;
+}
+
+/* Additional overrides for browser default blue hover */
+select:focus option:checked {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+}
+
+/* Try to override Chrome's default option styling */
+select option::-moz-focus-inner {
+    border: 0;
+}
+
+/* Force override for active/hover states */
+select option:active,
+select option:checked:hover,
+.form-select option:active,
+.form-select option:checked:hover {
+    background-color: var(--hover-bg) !important;
+    background: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
 }
 
 .form-input:focus,
 .form-select:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(124, 140, 163, 0.2);
+    box-shadow: 0 0 0 2px var(--shadow-focus);
 }
 
 .form-input:read-only,
@@ -548,18 +661,10 @@ select:focus {
     cursor: not-allowed;
 }
 
-.form-info-box {
-    padding: 12px;
-    background: var(--hover-bg);
-    border-radius: var(--border-radius);
-    color: var(--text-secondary);
-}
-
 /* Progress Bars */
 .progress-bar {
     width: 100%;
     height: 10px;
-    background: #e9ecef;
     border-radius: 10px;
     margin-top: var(--spacing-sm);
     overflow: hidden;
@@ -570,29 +675,24 @@ select:focus {
     height: 100%;
     border-radius: 10px;
     transition: width 0.3s ease;
-    background: #17a2b8;
     /* ברירת מחדל - כחול */
 }
 
+/* Progress Bar Status Colors */
 .progress-bar-success .progress-bar-fill {
-    background: #28a745;
+    background: var(--progress-success);
 }
 
 .progress-bar-warning .progress-bar-fill {
-    background: #ffc107;
+    background: var(--progress-warning);
 }
 
 .progress-bar-danger .progress-bar-fill {
-    background: #dc3545;
+    background: var(--progress-danger);
 }
 
 .progress-bar-info .progress-bar-fill {
-    background: #17a2b8;
-}
-
-/* CPU Usage - Blue */
-.progress-bar-cpu .progress-bar-fill {
-    background: #17a2b8 !important;
+    background: var(--progress-info);
 }
 
 /* Temperature Progress Bars - Gradient + Mask */
@@ -623,20 +723,6 @@ select:focus {
     /* Semi-transparent dark overlay */
     transition: width 0.3s ease;
     z-index: 1;
-}
-
-.progress-bar-temp .progress-bar-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    z-index: 2;
-    pointer-events: none;
 }
 
 /* הסרת fill ישן לטמפרטורה */
@@ -758,7 +844,6 @@ select:focus {
 /* Storage Progress Bar */
 .progress-bar-storage {
     height: 18px;
-    background: var(--bg-secondary);
     border-radius: 9999px;
     overflow: hidden;
     position: relative;
@@ -790,7 +875,7 @@ select:focus {
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    color: var(--icon-color, #000000);
+    color: var(--icon-color);
 }
 
 .progress-bar-value {
@@ -824,7 +909,7 @@ select:focus {
 
 .btn-primary {
     background: var(--accent-color);
-    color: white;
+    color: var(--btn-primary-text);
 }
 
 .btn-primary:hover {
@@ -833,12 +918,30 @@ select:focus {
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
+    background: var(--btn-secondary-bg);
+    color: var(--btn-primary-text);
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: var(--btn-secondary-hover);
+}
+
+.btn-warning {
+    background: var(--btn-warning-bg);
+    color: var(--btn-warning-text);
+}
+
+.btn-warning:hover {
+    opacity: 0.9;
+}
+
+.btn-danger {
+    background: var(--btn-danger-bg);
+    color: var(--btn-danger-text);
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
 }
 
 .btn-full-width {
@@ -868,7 +971,7 @@ select:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--toggle-bg);
     border-radius: 24px;
     transition: 0.3s;
 }
@@ -880,14 +983,14 @@ select:focus {
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--toggle-thumb);
     border-radius: 50%;
     transition: 0.3s;
     transform: translateX(0);
 }
 
 .toggle-switch-input:checked+.toggle-switch-slider {
-    background-color: #28a745;
+    background-color: var(--toggle-active);
 }
 
 .toggle-switch-input:checked+.toggle-switch-slider:before {
@@ -927,23 +1030,23 @@ select:focus {
 .placeholder-container {
     width: 100%;
     height: 500px;
-    background: #f0f0f0;
+    background: var(--placeholder-bg);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
+    color: var(--placeholder-text);
     margin-bottom: var(--spacing-md);
 }
 
 .placeholder-container.dark {
-    background: #000;
-    color: #666;
+    background: var(--placeholder-dark-bg);
+    color: var(--placeholder-dark-text);
 }
 
 .placeholder-container.dark .placeholder-content {
-    color: #fff;
+    color: var(--placeholder-dark-content);
 }
 
 .placeholder-content {
@@ -967,12 +1070,12 @@ select:focus {
 .placeholder-content .placeholder-subtitle {
     font-size: 12px;
     margin-top: 10px;
-    color: #888;
+    color: var(--placeholder-subtitle);
 }
 
 .log-container {
-    background: #1a1a1a;
-    color: #00ff00;
+    background: var(--log-bg);
+    color: var(--log-text-info);
     padding: var(--spacing-md);
     border-radius: var(--border-radius);
     font-family: 'Courier New', monospace;
@@ -986,23 +1089,23 @@ select:focus {
 }
 
 .log-time {
-    color: #888;
+    color: var(--log-text-time);
 }
 
 .log-level-info {
-    color: #00ff00;
+    color: var(--log-text-info);
 }
 
 .log-level-warning {
-    color: #ffaa00;
+    color: var(--log-text-warning);
 }
 
 .log-level-error {
-    color: #ff0000;
+    color: var(--log-text-error);
 }
 
 .log-level-debug {
-    color: #888;
+    color: var(--log-text-debug);
 }
 
 /* Utility Classes */
@@ -1037,7 +1140,7 @@ select:focus {
 
 .placeholder-container.map {
     height: 600px;
-    border: 2px dashed #ccc;
+    border: 2px dashed var(--placeholder-border);
 }
 
 /* Grid Layout */
@@ -1121,23 +1224,23 @@ h3 {
 }
 
 .badge-success {
-    background: #d4edda;
-    color: #155724;
+    background: var(--badge-success-bg);
+    color: var(--badge-success-text);
 }
 
 .badge-warning {
-    background: #fff3cd;
-    color: #856404;
+    background: var(--badge-warning-bg);
+    color: var(--badge-warning-text);
 }
 
 .badge-danger {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--badge-danger-bg);
+    color: var(--badge-danger-text);
 }
 
 .badge-info {
-    background: #d1ecf1;
-    color: #0c5460;
+    background: var(--badge-info-bg);
+    color: var(--badge-info-text);
 }
 
 /* Mobile Menu Button */
@@ -1312,21 +1415,5 @@ h3 {
     .card-body .table-wrapper {
         margin: 0 calc(-1 * var(--spacing-md));
         padding: 0 var(--spacing-md);
-    }
-}
-
-/* Responsive - Application Page */
-@media (max-width: 768px) {
-    .app-setting-row {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: var(--spacing-sm) !important;
-    }
-
-    .app-input,
-    .app-select {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box;
     }
 }

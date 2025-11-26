@@ -16,6 +16,64 @@
     --table-header-bg: #f8f9fa;
     --icon-color: #000000;
     /* שחור */
+
+    /* Progress Bars */
+    --progress-success: #28a745;
+    --progress-warning: #ffc107;
+    --progress-danger: #dc3545;
+    --progress-info: #17a2b8;
+
+    /* Badges */
+    --badge-success-bg: #d4edda;
+    --badge-success-text: #155724;
+    --badge-warning-bg: #fff3cd;
+    --badge-warning-text: #856404;
+    --badge-danger-bg: #f8d7da;
+    --badge-danger-text: #721c24;
+    --badge-info-bg: #d1ecf1;
+    --badge-info-text: #0c5460;
+
+    /* Buttons */
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #6c757d;
+    --btn-secondary-hover: #5a6268;
+    --btn-warning-bg: #ff9800;
+    --btn-warning-text: #ffffff;
+    --btn-danger-bg: #8b0000;
+    --btn-danger-text: #ffffff;
+
+    /* Toggle Switches */
+    --toggle-bg: #ccc;
+    --toggle-thumb: #ffffff;
+    --toggle-active: #28a745;
+
+    /* Placeholder Containers */
+    --placeholder-bg: #f0f0f0;
+    --placeholder-text: #666666;
+    --placeholder-border: #ccc;
+    --placeholder-dark-bg: #000000;
+    --placeholder-dark-text: #666666;
+    --placeholder-dark-content: #ffffff;
+    --placeholder-subtitle: #888888;
+
+    /* Log Containers */
+    --log-bg: #1a1a1a;
+    --log-text-info: #00ff00;
+    --log-text-warning: #ffaa00;
+    --log-text-error: #ff0000;
+    --log-text-debug: #888888;
+    --log-text-time: #888888;
+
+    /* Navigation */
+    --nav-active-text: #ff8c00;
+
+    /* Shadows */
+    --shadow-sm: rgba(0, 0, 0, 0.05);
+    --shadow-md: rgba(0, 0, 0, 0.15);
+    --shadow-focus: rgba(124, 140, 163, 0.2);
+
+    /* Select Arrow */
+    --select-arrow-color: #666666;
 }
 
 /* Medium Theme */
@@ -36,6 +94,64 @@
     --table-header-bg: #454545;
     --icon-color: #6c757d;
     /* אפור */
+
+    /* Progress Bars */
+    --progress-success: #28a745;
+    --progress-warning: #ffc107;
+    --progress-danger: #dc3545;
+    --progress-info: #17a2b8;
+
+    /* Badges */
+    --badge-success-bg: #155724;
+    --badge-success-text: #d4edda;
+    --badge-warning-bg: #856404;
+    --badge-warning-text: #fff3cd;
+    --badge-danger-bg: #721c24;
+    --badge-danger-text: #f8d7da;
+    --badge-info-bg: #0c5460;
+    --badge-info-text: #d1ecf1;
+
+    /* Buttons */
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #6c757d;
+    --btn-secondary-hover: #5a6268;
+    --btn-warning-bg: #ff9800;
+    --btn-warning-text: #ffffff;
+    --btn-danger-bg: #8b0000;
+    --btn-danger-text: #ffffff;
+
+    /* Toggle Switches */
+    --toggle-bg: #ccc;
+    --toggle-thumb: #ffffff;
+    --toggle-active: #28a745;
+
+    /* Placeholder Containers */
+    --placeholder-bg: #f0f0f0;
+    --placeholder-text: #666666;
+    --placeholder-border: #ccc;
+    --placeholder-dark-bg: #000000;
+    --placeholder-dark-text: #666666;
+    --placeholder-dark-content: #ffffff;
+    --placeholder-subtitle: #888888;
+
+    /* Log Containers */
+    --log-bg: #1a1a1a;
+    --log-text-info: #00ff00;
+    --log-text-warning: #ffaa00;
+    --log-text-error: #ff0000;
+    --log-text-debug: #888888;
+    --log-text-time: #888888;
+
+    /* Navigation */
+    --nav-active-text: #ff8c00;
+
+    /* Shadows */
+    --shadow-sm: rgba(0, 0, 0, 0.05);
+    --shadow-md: rgba(0, 0, 0, 0.15);
+    --shadow-focus: rgba(124, 140, 163, 0.2);
+
+    /* Select Arrow */
+    --select-arrow-color: #666666;
 }
 
 /* Dark Theme */
@@ -56,28 +172,64 @@
     --table-header-bg: #2d2d2d;
     --icon-color: #ffffff;
     /* לבן */
+
+    /* Progress Bars */
+    --progress-success: #28a745;
+    --progress-warning: #ffc107;
+    --progress-danger: #dc3545;
+    --progress-info: #17a2b8;
+
+    /* Badges */
+    --badge-success-bg: #155724;
+    --badge-success-text: #d4edda;
+    --badge-warning-bg: #856404;
+    --badge-warning-text: #fff3cd;
+    --badge-danger-bg: #721c24;
+    --badge-danger-text: #f8d7da;
+    --badge-info-bg: #0c5460;
+    --badge-info-text: #d1ecf1;
+
+    /* Buttons */
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #6c757d;
+    --btn-secondary-hover: #5a6268;
+    --btn-warning-bg: #ff9800;
+    --btn-warning-text: #ffffff;
+    --btn-danger-bg: #8b0000;
+    --btn-danger-text: #ffffff;
+
+    /* Toggle Switches */
+    --toggle-bg: #ccc;
+    --toggle-thumb: #ffffff;
+    --toggle-active: #28a745;
+
+    /* Placeholder Containers */
+    --placeholder-bg: #f0f0f0;
+    --placeholder-text: #666666;
+    --placeholder-border: #ccc;
+    --placeholder-dark-bg: #000000;
+    --placeholder-dark-text: #666666;
+    --placeholder-dark-content: #ffffff;
+    --placeholder-subtitle: #888888;
+
+    /* Log Containers */
+    --log-bg: #1a1a1a;
+    --log-text-info: #00ff00;
+    --log-text-warning: #ffaa00;
+    --log-text-error: #ff0000;
+    --log-text-debug: #888888;
+    --log-text-time: #888888;
+
+    /* Navigation */
+    --nav-active-text: #ff8c00;
+
+    /* Shadows */
+    --shadow-sm: rgba(0, 0, 0, 0.05);
+    --shadow-md: rgba(0, 0, 0, 0.15);
+    --shadow-focus: rgba(124, 140, 163, 0.2);
+
+    /* Select Arrow */
+    --select-arrow-color: #666666;
 }
 
-.theme-medium .badge-success,
-.theme-dark .badge-success {
-    background: #155724;
-    color: #d4edda;
-}
-
-.theme-medium .badge-warning,
-.theme-dark .badge-warning {
-    background: #856404;
-    color: #fff3cd;
-}
-
-.theme-medium .badge-danger,
-.theme-dark .badge-danger {
-    background: #721c24;
-    color: #f8d7da;
-}
-
-.theme-medium .badge-info,
-.theme-dark .badge-info {
-    background: #0c5460;
-    color: #d1ecf1;
-}
+/* Badges now use CSS variables - these overrides are no longer needed */
