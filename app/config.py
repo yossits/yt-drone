@@ -8,7 +8,7 @@ from typing import Optional
 class Settings:
     """הגדרות האפליקציה"""
 
-    APP_NAME: str = "Drone Control Center"
+    APP_NAME: str = "YT-Drone"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 

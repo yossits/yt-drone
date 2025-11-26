@@ -1,4 +1,4 @@
-# AI Drone Control Center
+# YT-Drone
 
 אפליקציה מודולרית לניהול רחפן ומערכות סביבו.
 

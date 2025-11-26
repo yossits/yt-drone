@@ -162,23 +162,39 @@ def get_storage_info() -> Dict:
             try:
                 usage = psutil.disk_usage(partition.mountpoint)
                 
-                total_gb = round(usage.total / (1024**3), 2)
-                used_gb = round(usage.used / (1024**3), 2)
-                free_gb = round(usage.free / (1024**3), 2)
-                percent = round(usage.percent, 2)
+                # Boot partition - use MB instead of GB
+                is_boot = partition.mountpoint == '/boot/firmware' or 'boot' in partition.mountpoint.lower()
                 
-                partition_info = {
-                    "device": partition.device,
-                    "mountpoint": partition.mountpoint,
-                    "total": f"{total_gb} GB",
-                    "used": f"{used_gb} GB",
-                    "free": f"{free_gb} GB",
-                    "percent": percent
-                }
-                
-                # Boot partition
-                if partition.mountpoint == '/boot/firmware' or 'boot' in partition.mountpoint.lower():
+                if is_boot:
+                    total_mb = round(usage.total / (1024**2), 2)
+                    used_mb = round(usage.used / (1024**2), 2)
+                    free_mb = round(usage.free / (1024**2), 2)
+                    percent = round(usage.percent, 2)
+                    
+                    partition_info = {
+                        "device": partition.device,
+                        "mountpoint": partition.mountpoint,
+                        "total": f"{total_mb} MB",
+                        "used": f"{used_mb} MB",
+                        "free": f"{free_mb} MB",
+                        "percent": percent
+                    }
                     boot_info = partition_info
+                else:
+                    # Root partition - use GB
+                    total_gb = round(usage.total / (1024**3), 2)
+                    used_gb = round(usage.used / (1024**3), 2)
+                    free_gb = round(usage.free / (1024**3), 2)
+                    percent = round(usage.percent, 2)
+                    
+                    partition_info = {
+                        "device": partition.device,
+                        "mountpoint": partition.mountpoint,
+                        "total": f"{total_gb} GB",
+                        "used": f"{used_gb} GB",
+                        "free": f"{free_gb} GB",
+                        "percent": percent
+                    }
                 
                 # Root partition
                 if partition.mountpoint == '/':
@@ -192,9 +208,9 @@ def get_storage_info() -> Dict:
             "boot": boot_info or {
                 "device": "N/A",
                 "mountpoint": "/boot/firmware",
-                "total": "0 GB",
-                "used": "0 GB",
-                "free": "0 GB",
+                "total": "0 MB",
+                "used": "0 MB",
+                "free": "0 MB",
                 "percent": 0.0
             },
             "root": root_info or {
@@ -211,9 +227,9 @@ def get_storage_info() -> Dict:
             "boot": {
                 "device": "N/A",
                 "mountpoint": "/boot/firmware",
-                "total": "0 GB",
-                "used": "0 GB",
-                "free": "0 GB",
+                "total": "0 MB",
+                "used": "0 MB",
+                "free": "0 MB",
                 "percent": 0.0
             },
             "root": {

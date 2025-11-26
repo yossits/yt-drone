@@ -208,6 +208,19 @@ body {
     box-sizing: border-box;
 }
 
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.sidebar-logo-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
 .sidebar-title {
     font-size: 18px;
     font-weight: 600;
@@ -216,7 +229,15 @@ body {
     transition: var(--transition);
 }
 
+.sidebar.collapsed .sidebar-logo {
+    justify-content: center;
+}
+
 .sidebar.collapsed .sidebar-title {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-logo-icon {
     display: none;
 }
 
@@ -383,28 +404,50 @@ body.sidebar-collapsed .main-content {
 .card-compact .storage-header {
     margin-bottom: var(--spacing-sm);
     padding-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .card-compact .storage-header .storage-title {
     font-size: 1.5rem;
 }
 
+.card-compact .storage-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: var(--icon-color);
+}
+
 .card-compact .storage-info {
-    gap: var(--spacing-sm);
+    gap: 2px;
 }
 
 .card-compact .storage-info .form-group {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
 }
 
 .card-compact .storage-info .form-label {
     font-size: 13px;
-    margin-bottom: 4px;
+    margin-bottom: 0;
+    display: inline;
+    min-width: fit-content;
+    white-space: nowrap;
 }
 
 .card-compact .storage-info .info-box {
-    padding: 2px;
+    padding: 0;
     font-size: 15px;
+    display: inline-block;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    text-align: right;
 }
 
 .card-compact .storage-info .progress-bar {
@@ -629,6 +672,17 @@ body.sidebar-collapsed .main-content {
 .storage-header {
     margin-bottom: 16px;
     padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.storage-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: var(--icon-color);
+    display: inline-block;
 }
 
 .storage-title {
@@ -1153,6 +1207,7 @@ h3 {
     .header-content {
         justify-content: space-between;
     }
+
 
     .btn-mobile-menu {
         display: flex;
