@@ -3,50 +3,153 @@
 {% block title %}YT-Drone{% endblock %}
 
 {% block content %}
+<h1>Ground Control Station</h1>
 
-<div class="grid grid-2">
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">לוגים</h2>
-        </div>
-        <div class="card-body">
-            <div class="log-container">
-                {% for log in logs %}
-                <div class="log-entry">
-                    <span class="log-time">[{{ log.time }}]</span>
-                    <span class="{% if log.level == 'INFO' %}log-level-info{% elif log.level == 'WARNING' %}log-level-warning{% elif log.level == 'ERROR' %}log-level-error{% else %}log-level-debug{% endif %}">
-                        [{{ log.level }}]
-                    </span>
-                    <span>{{ log.message }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+<p style="margin-bottom: var(--spacing-lg); color: var(--text-secondary);">
+  Add destinations to receive live video and flight data from your drone. Each destination is a combination of an IP address and a port number.
+  These destinations will receive data using the UDP protocol, which allows for fast, real-time transmission of video and telemetry information.
+</p>
+
+<style>
+.destination-card {
+  max-width: 300px;
+  width: 100%;
+}
+</style>
+
+<!-- Destinations Grid -->
+<div class="grid grid-3" id="destinations-grid">
+  <!-- Default empty destination card -->
+  <div class="card destination-card">
+    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <h3 class="card-title" style="margin: 0;">New Destination</h3>
+      <label class="toggle-switch">
+        <input type="checkbox" class="toggle-switch-input destination-enabled">
+        <span class="toggle-switch-slider"></span>
+      </label>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">פקודות זמינות</h2>
-        </div>
-        <div class="card-body">
-            <div class="form-container tight">
-                {% for cmd in commands %}
-                <button class="btn btn-primary btn-full-width btn-no-margin">
-                    {{ cmd }}
-                </button>
-                {% endfor %}
-            </div>
-            <p class="text-muted">
-                <em>כפתורים אלה יהיו פעילים בעתיד עם חיבור אמיתי לרחפן.</em>
-            </p>
-        </div>
-    </div>
-</div>
-
-<div class="card">
     <div class="card-body">
-        <p><em>כאן יוצגו לוגים ופקודות נוספים של Ground Control Station בעתיד, כולל חיבור אמיתי למערכת.</em></p>
+      <div class="form-group">
+        <label class="form-label">Name:</label>
+        <input type="text" class="form-input" placeholder="Enter destination name">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Destination IP or Host:</label>
+        <input type="text" class="form-input" placeholder="Enter IP address">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Telemetry Port:</label>
+        <input type="text" class="form-input" placeholder="14550">
+      </div>
+      
+      <div class="setting-row">
+        <label class="form-label no-margin">Enable Telemetry</label>
+        <label class="toggle-switch">
+          <input type="checkbox" class="toggle-switch-input telemetry-enabled">
+          <span class="toggle-switch-slider"></span>
+        </label>
+      </div>
+      
+      <button class="btn btn-danger remove-destination-btn" style="margin-top: var(--spacing-md); border: 1px solid #dc3545;">
+        Remove
+      </button>
     </div>
+  </div>
 </div>
+
+<!-- Add Destination Button -->
+<button class="btn btn-primary" id="add-destination-btn" style="margin-top: var(--spacing-lg);">
+  Add Destination
+</button>
+
 {% endblock %}
 
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const grid = document.getElementById('destinations-grid');
+  const addButton = document.getElementById('add-destination-btn');
+  
+  // Template function to create a new destination card
+  function createDestinationCard() {
+    const card = document.createElement('div');
+    card.className = 'card destination-card';
+    card.innerHTML = `
+      <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <h3 class="card-title" style="margin: 0;">New Destination</h3>
+        <label class="toggle-switch">
+          <input type="checkbox" class="toggle-switch-input destination-enabled">
+          <span class="toggle-switch-slider"></span>
+        </label>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" placeholder="Enter destination name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Destination IP or Host</label>
+          <input type="text" class="form-input" placeholder="Enter IP address">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Telemetry Port</label>
+          <input type="text" class="form-input" placeholder="14550">
+        </div>
+        
+        <div class="setting-row">
+          <label class="form-label no-margin">Enable Telemetry</label>
+          <label class="toggle-switch">
+            <input type="checkbox" class="toggle-switch-input telemetry-enabled">
+            <span class="toggle-switch-slider"></span>
+          </label>
+        </div>
+        
+        <button class="btn btn-danger remove-destination-btn" style="margin-top: var(--spacing-md); border: 1px solid #dc3545;">
+          Remove
+        </button>
+      </div>
+    `;
+    return card;
+  }
+  
+  // Function to add a new destination card
+  function addDestination() {
+    const newCard = createDestinationCard();
+    grid.appendChild(newCard);
+  }
+  
+  // Function to remove a destination card
+  function removeDestination(button) {
+    const card = button.closest('.destination-card');
+    if (card && grid.children.length > 1) {
+      card.remove();
+    } else if (card && grid.children.length === 1) {
+      // If this is the last card, reset it instead of removing
+      const inputs = card.querySelectorAll('.form-input');
+      inputs.forEach(input => input.value = '');
+      const checkboxes = card.querySelectorAll('.toggle-switch-input');
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+    }
+  }
+  
+  // Event listener for Add Destination button
+  addButton.addEventListener('click', addDestination);
+  
+  // Event delegation for Remove buttons
+  grid.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-destination-btn')) {
+      removeDestination(e.target);
+    }
+  });
+  
+  // Ensure at least one card exists on load
+  if (grid.children.length === 0) {
+    addDestination();
+  }
+});
+</script>
+{% endblock %}

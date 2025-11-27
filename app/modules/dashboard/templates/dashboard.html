@@ -10,11 +10,43 @@ endblock %} {% block content %}
       </div>
     </div>
     <div class="card-body">
-      <p>
-        <strong>חיבור:</strong>
-        <span class="badge badge-success">{{ connection_status }}</span>
-      </p>
-      <p><strong>עוצמת אות:</strong> {{ signal_strength }}%</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+        <!-- Left Card: System Status -->
+        <div class="card card-compact" style="border: none; box-shadow: none;">
+          <div class="card-header">
+            <h3 class="card-title">System Status</h3>
+          </div>
+          <div class="card-body">
+            <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">Monitor application status. Check logs if issues occur.</p>
+            
+            <div class="status-item" style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+              <span class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
+              <span>Mavlink Manager</span>
+            </div>
+            
+            <div class="status-item" style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+              <span class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
+              <span>Video Service</span>
+            </div>
+            
+            <div class="status-item" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+              <span class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
+              <span>Autostart</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Card: Control Panel -->
+        <div class="card card-compact" style="border: none; box-shadow: none;">
+          <div class="card-header">
+            <h3 class="card-title">Control Panel</h3>
+          </div>
+          <div class="card-body">
+            <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">Manage UAVcast-Pro startup sequence and autostart functionality.</p>
+            <button class="btn btn-primary">Simulate Startup</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

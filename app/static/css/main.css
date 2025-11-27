@@ -12,7 +12,7 @@
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
-    --border-radius: 8px;
+    --border-radius: 4px;
     --border-radius-lg: 12px;
     --transition: all 0.5s ease;
     --sidebar-transition: all 1.2s ease;
@@ -57,7 +57,7 @@ body {
 .btn-sidebar-toggle {
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 2px;
     padding: 4px;
     cursor: pointer;
     font-size: 20px;
@@ -159,7 +159,7 @@ body {
 .btn-icon {
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 2px;
     padding: var(--spacing-sm) var(--spacing-md);
     cursor: pointer;
     font-size: 14px;
@@ -844,7 +844,7 @@ select option:checked:hover,
 .storage-partition {
     padding: 16px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 4px;
     background: var(--card-bg);
 }
 
@@ -933,7 +933,7 @@ select option:checked:hover,
 .btn {
     padding: 10px 20px;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 2px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
@@ -1284,7 +1284,7 @@ h3 {
     display: none;
     background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 2px;
     padding: var(--spacing-sm) var(--spacing-md);
     cursor: pointer;
     font-size: 18px;
@@ -1451,5 +1451,111 @@ h3 {
     .card-body .table-wrapper {
         margin: 0 calc(-1 * var(--spacing-md));
         padding: 0 var(--spacing-md);
+    }
+}
+
+/* Loading States */
+.data-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.data-loading::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.data-error {
+    color: var(--danger);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.9em;
+}
+
+.data-error::before {
+    content: "⚠";
+    font-size: 1.2em;
+}
+
+.data-content {
+    display: contents;
+}
+
+.data-container {
+    position: relative;
+    min-height: 1.5em;
+}
+
+.data-container[data-state="loading"] .data-content {
+    display: none;
+}
+
+.data-container[data-state="loading"] .data-loading {
+    display: inline-flex;
+}
+
+.data-container[data-state="error"] .data-content {
+    display: none;
+}
+
+.data-container[data-state="error"] .data-error {
+    display: inline-flex;
+}
+
+.data-container[data-state="loaded"] .data-loading,
+.data-container[data-state="loaded"] .data-error {
+    display: none;
+}
+
+.data-container[data-state="loaded"] .data-content {
+    display: contents;
+}
+
+/* Skeleton loading for progress bars */
+.progress-bar-skeleton {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    height: 100%;
+    min-height: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar-skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
     }
 }
