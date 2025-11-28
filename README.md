@@ -33,13 +33,13 @@
 
 ```bash
 # יצירת סביבה וירטואלית
-python -m venv venv
+python -m venv .venv
 
 # הפעלת הסביבה (Windows)
 venv\Scripts\activate
 
 # הפעלת הסביבה (Linux/Mac)
-source venv/bin/activate
+source .venv/bin/activate
 
 # התקנת תלויות
 pip install -r requirements.txt
