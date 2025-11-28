@@ -5,7 +5,7 @@ set -e
 APP_USER="pi"
 APP_DIR="/home/pi/yt-drone"       # Change this if you want a different directory
 REPO_URL="https://github.com/yossits/yt-drone.git"  # <- Update if needed!
-SERVICE_NAME="drone-hub.service"
+SERVICE_NAME="yt-drone.service"
 PYTHON="/usr/bin/python3"
 APP_PORT=8001                      # HTTP port for your application
 
@@ -339,7 +339,7 @@ SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 
 cat > "$SERVICE_PATH" << EOF
 [Unit]
-Description=Drone Hub Application
+Description=YT-Drone Application
 After=network-online.target
 Wants=network-online.target
 

@@ -6,7 +6,7 @@
 APP_USER="pi"
 APP_DIR="/home/pi/yt-drone"
 REPO_URL="https://github.com/yossits/yt-drone.git"
-SERVICE_NAME="drone-hub.service"
+SERVICE_NAME="yt-drone.service"
 PYTHON="/usr/bin/python3"
 APP_PORT=8001
 
@@ -288,7 +288,7 @@ fi
 dry_run "Service file content would be:"
 cat << EOF | sed 's/^/  /'
 [Unit]
-Description=Drone Hub Application
+Description=YT-Drone Application
 After=network-online.target
 Wants=network-online.target
 

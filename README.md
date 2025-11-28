@@ -69,16 +69,16 @@ curl -fsSL https://raw.githubusercontent.com/yossits/yt-drone/main/install.sh | 
 
 ```bash
 # בדיקת סטטוס השירות
-sudo systemctl status drone-hub.service
+sudo systemctl status yt-drone.service
 
 # צפייה בלוגים
-sudo journalctl -u drone-hub.service -f
+sudo journalctl -u yt-drone.service -f
 
 # הפעלה מחדש של השירות
-sudo systemctl restart drone-hub.service
+sudo systemctl restart yt-drone.service
 
 # עצירת השירות
-sudo systemctl stop drone-hub.service
+sudo systemctl stop yt-drone.service
 ```
 
 ### התקנה ידנית
@@ -167,14 +167,14 @@ chmod +x /home/pi/yt-drone/run_app.sh
 צור קובץ שירות:
 
 ```bash
-sudo nano /etc/systemd/system/drone-hub.service
+sudo nano /etc/systemd/system/yt-drone.service
 ```
 
 הוסף את התוכן הבא:
 
 ```ini
 [Unit]
-Description=Drone Hub Application
+Description=YT-Drone Application
 After=network-online.target
 Wants=network-online.target
 
@@ -197,14 +197,14 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable drone-hub.service
-sudo systemctl start drone-hub.service
+sudo systemctl enable yt-drone.service
+sudo systemctl start yt-drone.service
 ```
 
 בדוק שהשירות רץ:
 
 ```bash
-sudo systemctl status drone-hub.service
+sudo systemctl status yt-drone.service
 ```
 
 ### פתרון בעיות
@@ -213,7 +213,7 @@ sudo systemctl status drone-hub.service
 
 1. בדוק את הלוגים:
    ```bash
-   sudo journalctl -u drone-hub.service -n 50
+   sudo journalctl -u yt-drone.service -n 50
    ```
 
 2. בדוק שהפורט פנוי:
@@ -257,7 +257,7 @@ sudo systemctl status drone-hub.service
 
 2. בדוק שהשירות רץ:
    ```bash
-   sudo systemctl status drone-hub.service
+   sudo systemctl status yt-drone.service
    ```
 
 3. בדוק את חומת האש (אם יש):
@@ -291,19 +291,19 @@ pip install -r requirements.txt
 
 ```bash
 # בדיקת סטטוס
-sudo systemctl status drone-hub.service
+sudo systemctl status yt-drone.service
 
 # הפעלה
-sudo systemctl start drone-hub.service
+sudo systemctl start yt-drone.service
 
 # עצירה
-sudo systemctl stop drone-hub.service
+sudo systemctl stop yt-drone.service
 
 # הפעלה מחדש
-sudo systemctl restart drone-hub.service
+sudo systemctl restart yt-drone.service
 
 # צפייה בלוגים בזמן אמת
-sudo journalctl -u drone-hub.service -f
+sudo journalctl -u yt-drone.service -f
 ```
 
 ### הרצה ידנית
@@ -319,7 +319,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 **הערה:** אם השירות systemd רץ, עצור אותו קודם:
 
 ```bash
-sudo systemctl stop drone-hub.service
+sudo systemctl stop yt-drone.service
 ```
 
 האפליקציה תהיה זמינה בכתובת: `http://[IP-של-הרספברי-פאי]:8001` או `http://localhost:8001`
