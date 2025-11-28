@@ -1,98 +1,98 @@
 # YT-Drone
 
-אפליקציה מודולרית לניהול רחפן ומערכות סביבו.
+Modular application for managing drones and surrounding systems.
 
-## גרסה V1 - System Monitoring & Real-time Updates
+## Version V1 - System Monitoring & Real-time Updates
 
-גרסה זו כוללת:
-- **System Monitoring אמיתי** - איסוף נתוני מערכת בזמן אמת (CPU, RAM, Storage, Temperature)
-- **WebSocket Integration** - עדכונים בזמן אמת דרך WebSocket
-- **Real-time Dashboard** - תצוגת נתוני מערכת מעודכנים אוטומטית
-- **UI מתקדם** - עיצוב responsive עם תמיכה בערכות נושא
+This version includes:
+- **Real System Monitoring** - Real-time system data collection (CPU, RAM, Storage, Temperature)
+- **WebSocket Integration** - Real-time updates via WebSocket
+- **Real-time Dashboard** - Automatically updated system data display
+- **Advanced UI** - Responsive design with theme support
 
-## תכונות
+## Features
 
 ### System Monitoring
-- **System Information**: מערכת הפעלה, חומרה, זמן פעילות
-- **CPU Monitoring**: טמפרטורה, שימוש, progress bars עם אינדיקטורים ויזואליים
-- **RAM Monitoring**: שימוש בזיכרון בזמן אמת
-- **Storage Monitoring**: מעקב אחר Boot partition (MB) ו-Root partition (GB) עם progress bars
+- **System Information**: Operating system, hardware, uptime
+- **CPU Monitoring**: Temperature, usage, progress bars with visual indicators
+- **RAM Monitoring**: Real-time memory usage
+- **Storage Monitoring**: Tracking of Boot partition (MB) and Root partition (GB) with progress bars
 
 ### Real-time Updates
-- **WebSocket Integration**: עדכונים אוטומטיים כל 5 שניות (CPU, RAM, Temperature) וכל 60 שניות (Storage, Uptime)
-- **Monitor Manager**: ניהול מרכזי של כל ה-monitors עם עדכונים תקופתיים
-- **Live Dashboard**: עדכון אוטומטי של כל השדות ללא רענון עמוד
+- **WebSocket Integration**: Automatic updates every 5 seconds (CPU, RAM, Temperature) and every 60 seconds (Storage, Uptime)
+- **Monitor Manager**: Centralized management of all monitors with periodic updates
+- **Live Dashboard**: Automatic update of all fields without page refresh
 
 ### UI/UX
-- **Theme Support**: 3 ערכות נושא (Light, Medium, Dark)
-- **Responsive Design**: תמיכה מלאה במסכים שונים (desktop, tablet, mobile)
-- **Modern UI**: עיצוב נקי ומודרני עם cards, progress bars, ואייקונים
-- **Sidebar Navigation**: תפריט צד נפתח/נסגר עם אייקונים לכל מודול
+- **Theme Support**: 3 themes (Light, Medium, Dark)
+- **Responsive Design**: Full support for different screens (desktop, tablet, mobile)
+- **Modern UI**: Clean and modern design with cards, progress bars, and icons
+- **Sidebar Navigation**: Collapsible side menu with icons for each module
 
-## התקנה על Raspberry Pi
+## Installation on Raspberry Pi
 
-### דרישות מוקדמות
+### Prerequisites
 
-לפני התחלת ההתקנה, ודא שיש לך:
+Before starting the installation, make sure you have:
 
-- **Raspberry Pi** עם **Raspberry Pi OS** מותקן (גרסה אחרונה מומלצת)
-- **חיבור לאינטרנט** פעיל
-- **הרשאות root** (גישה ל-`sudo`)
-- **מערכת הפעלה נקייה** או מערכת קיימת שברצונך להתקין עליה
+- **Raspberry Pi** with **Raspberry Pi OS** installed (latest version recommended)
+- **Active internet connection**
+- **Root privileges** (access to `sudo`)
+- **Clean operating system** or existing system you want to install on
 
-### התקנה אוטומטית (מומלץ)
+### Automatic Installation (Recommended)
 
-הדרך הקלה והמהירה ביותר להתקין את האפליקציה היא באמצעות סקריפט ההתקנה האוטומטי:
+The easiest and fastest way to install the application is using the automatic installation script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yossits/yt-drone/main/install.sh | sudo bash
 ```
 
-**מה הסקריפט עושה:**
+**What the script does:**
 
-1. **התקנת חבילות מערכת** - Python 3, Git, pip, venv, net-tools
-2. **שכפול/עדכון Repository** - הורדת הקוד מהמאגר ב-GitHub
-3. **יצירת סביבה וירטואלית** - Python virtualenv והתקנת כל התלויות
-4. **הגדרת UART** - הגדרת UART לחומרה (enable_uart=1, disable-bt)
-5. **בדיקת פורט** - וידוא שהפורט 8001 פנוי
-6. **יצירת קובץ הרצה** - יצירת `run_app.sh` להרצת האפליקציה
-7. **יצירת שירות Systemd** - הגדרת השירות להרצה אוטומטית
-8. **הפעלת השירות** - הפעלה אוטומטית של האפליקציה
+1. **Install system packages** - Python 3, Git, pip, venv, net-tools
+2. **Clone/Update Repository** - Download code from GitHub repository
+3. **Create virtual environment** - Python virtualenv and install all dependencies
+4. **Configure UART** - Configure UART for hardware (enable_uart=1, disable-bt)
+5. **Check port** - Verify that port 8001 is available
+6. **Create launch file** - Create `run_app.sh` to run the application
+7. **Create Systemd service** - Configure service for automatic startup
+8. **Start service** - Automatically start the application
 
-**לאחר ההתקנה:**
+**After installation:**
 
-- אם ה-UART שונה, **תידרש אתחול** של המערכת
-- האפליקציה תרוץ אוטומטית כשירות systemd
-- תוכל לגשת לאפליקציה בכתובת: `http://[IP-של-הרספברי-פאי]:8001`
+- If UART was changed, **a system reboot will be required**
+- The application will run automatically as a systemd service
+- You can access the application at: `http://[Raspberry-Pi-IP]:8001`
 
-**פקודות שימושיות:**
+**Useful commands:**
 
 ```bash
-# בדיקת סטטוס השירות
+# Check service status
 sudo systemctl status yt-drone.service
 
-# צפייה בלוגים
+# View logs
 sudo journalctl -u yt-drone.service -f
 
-# הפעלה מחדש של השירות
+# Restart service
 sudo systemctl restart yt-drone.service
 
-# עצירת השירות
+# Stop service
 sudo systemctl stop yt-drone.service
 ```
 
-### התקנה ידנית
+### Manual Installation
 
-אם אתה מעדיף להתקין ידנית, בצע את השלבים הבאים:
+If you prefer to install manually, follow these steps:
 
-#### 1. עדכון המערכת והתקנת חבילות בסיסיות
+#### 1. Update system and install basic packages
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y git python3 python3-venv python3-pip net-tools
 ```
 
-#### 2. שכפול המאגר
+#### 2. Clone repository
 
 ```bash
 cd /home/pi
@@ -100,7 +100,7 @@ git clone https://github.com/yossits/yt-drone.git
 cd yt-drone
 ```
 
-#### 3. יצירת סביבה וירטואלית והתקנת תלויות
+#### 3. Create virtual environment and install dependencies
 
 ```bash
 python3 -m venv venv
@@ -109,44 +109,44 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### 4. הגדרת UART
+#### 4. Configure UART
 
-ערוך את קובץ `/boot/config.txt`:
+Edit the `/boot/config.txt` file:
 
 ```bash
 sudo nano /boot/config.txt
 ```
 
-הוסף או ודא שיש את השורות הבאות:
+Add or ensure the following lines exist:
 
 ```
 enable_uart=1
 dtoverlay=disable-bt
 ```
 
-שמור את הקובץ (Ctrl+O, Enter, Ctrl+X).
+Save the file (Ctrl+O, Enter, Ctrl+X).
 
-ערוך את קובץ `/boot/cmdline.txt` והסר כל אזכור ל-`console=serial0` או `console=ttyAMA0`:
+Edit the `/boot/cmdline.txt` file and remove any references to `console=serial0` or `console=ttyAMA0`:
 
 ```bash
 sudo nano /boot/cmdline.txt
 ```
 
-**חשוב:** לאחר שינוי קבצי UART, **אתחל את המערכת**:
+**Important:** After changing UART files, **reboot the system**:
 
 ```bash
 sudo reboot
 ```
 
-#### 5. יצירת קובץ הרצה
+#### 5. Create launch file
 
-צור קובץ `run_app.sh`:
+Create `run_app.sh` file:
 
 ```bash
 nano /home/pi/yt-drone/run_app.sh
 ```
 
-הוסף את התוכן הבא:
+Add the following content:
 
 ```bash
 #!/bin/bash
@@ -156,21 +156,21 @@ source venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
-שמור את הקובץ והפוך אותו לביצועי:
+Save the file and make it executable:
 
 ```bash
 chmod +x /home/pi/yt-drone/run_app.sh
 ```
 
-#### 6. יצירת שירות Systemd
+#### 6. Create Systemd service
 
-צור קובץ שירות:
+Create service file:
 
 ```bash
 sudo nano /etc/systemd/system/yt-drone.service
 ```
 
-הוסף את התוכן הבא:
+Add the following content:
 
 ```ini
 [Unit]
@@ -191,9 +191,9 @@ Environment=PYTHONUNBUFFERED=1
 WantedBy=multi-user.target
 ```
 
-שמור את הקובץ.
+Save the file.
 
-#### 7. הפעלת השירות
+#### 7. Start service
 
 ```bash
 sudo systemctl daemon-reload
@@ -201,114 +201,114 @@ sudo systemctl enable yt-drone.service
 sudo systemctl start yt-drone.service
 ```
 
-בדוק שהשירות רץ:
+Check that the service is running:
 
 ```bash
 sudo systemctl status yt-drone.service
 ```
 
-### פתרון בעיות
+### Troubleshooting
 
-#### השירות לא מתחיל
+#### Service won't start
 
-1. בדוק את הלוגים:
+1. Check the logs:
    ```bash
    sudo journalctl -u yt-drone.service -n 50
    ```
 
-2. בדוק שהפורט פנוי:
+2. Check that the port is available:
    ```bash
    sudo netstat -tulpn | grep 8001
    ```
 
-3. בדוק שהקובץ `run_app.sh` קיים ובעל הרשאות ביצוע:
+3. Check that the `run_app.sh` file exists and has execute permissions:
    ```bash
    ls -l /home/pi/yt-drone/run_app.sh
    ```
 
-#### שגיאות בהתקנת תלויות
+#### Dependency installation errors
 
-1. ודא שיש חיבור לאינטרנט
-2. נסה לעדכן את pip:
+1. Make sure you have an internet connection
+2. Try updating pip:
    ```bash
    source venv/bin/activate
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-#### UART לא עובד
+#### UART not working
 
-1. ודא שביצעת אתחול לאחר שינוי קבצי UART
-2. בדוק את קובץ `/boot/config.txt`:
+1. Make sure you rebooted after changing UART files
+2. Check the `/boot/config.txt` file:
    ```bash
    cat /boot/config.txt | grep uart
    ```
-3. בדוק את קובץ `/boot/cmdline.txt` שאין בו console=serial0:
+3. Check the `/boot/cmdline.txt` file that it doesn't have console=serial0:
    ```bash
    cat /boot/cmdline.txt
    ```
 
-#### לא ניתן לגשת לאפליקציה מהרשת
+#### Cannot access application from network
 
-1. בדוק את כתובת ה-IP של הרספברי פאי:
+1. Check the Raspberry Pi IP address:
    ```bash
    hostname -I
    ```
 
-2. בדוק שהשירות רץ:
+2. Check that the service is running:
    ```bash
    sudo systemctl status yt-drone.service
    ```
 
-3. בדוק את חומת האש (אם יש):
+3. Check the firewall (if present):
    ```bash
    sudo ufw status
    ```
 
-## התקנה (פלטפורמות אחרות)
+## Installation (Other Platforms)
 
 ```bash
-# יצירת סביבה וירטואלית
+# Create virtual environment
 python -m venv .venv
 
-# הפעלת הסביבה (Windows)
+# Activate environment (Windows)
 venv\Scripts\activate
 
-# הפעלת הסביבה (Linux/Mac)
+# Activate environment (Linux/Mac)
 source .venv/bin/activate
 
-# התקנת תלויות
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## הרצה
+## Running
 
-### על Raspberry Pi (כשירות)
+### On Raspberry Pi (as service)
 
-אם התקנת את האפליקציה עם `install.sh`, היא תרוץ אוטומטית כשירות systemd. השירות יתחיל אוטומטית בכל אתחול.
+If you installed the application with `install.sh`, it will run automatically as a systemd service. The service will start automatically on every boot.
 
-**ניהול השירות:**
+**Service management:**
 
 ```bash
-# בדיקת סטטוס
+# Check status
 sudo systemctl status yt-drone.service
 
-# הפעלה
+# Start
 sudo systemctl start yt-drone.service
 
-# עצירה
+# Stop
 sudo systemctl stop yt-drone.service
 
-# הפעלה מחדש
+# Restart
 sudo systemctl restart yt-drone.service
 
-# צפייה בלוגים בזמן אמת
+# View logs in real-time
 sudo journalctl -u yt-drone.service -f
 ```
 
-### הרצה ידנית
+### Manual run
 
-להרצה ידנית (לפיתוח או בדיקה):
+For manual run (for development or testing):
 
 ```bash
 cd /home/pi/yt-drone
@@ -316,51 +316,51 @@ source venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-**הערה:** אם השירות systemd רץ, עצור אותו קודם:
+**Note:** If the systemd service is running, stop it first:
 
 ```bash
 sudo systemctl stop yt-drone.service
 ```
 
-האפליקציה תהיה זמינה בכתובת: `http://[IP-של-הרספברי-פאי]:8001` או `http://localhost:8001`
+The application will be available at: `http://[Raspberry-Pi-IP]:8001` or `http://localhost:8001`
 
-## מבנה הפרויקט
+## Project Structure
 
-הפרויקט בנוי בצורה מודולרית, כאשר כל מודול מכיל:
+The project is built in a modular way, where each module contains:
 
-- `router.py` - Routes של המודול
-- `services.py` - לוגיקה ונתוני דמו/אמיתיים
-- `templates/` - תבניות HTML של המודול
+- `router.py` - Module routes
+- `services.py` - Logic and demo/real data
+- `templates/` - HTML templates of the module
 
-### תיקיות עיקריות
+### Main directories
 
-- `app/core/` - שירותים משותפים:
-  - `system.py` - איסוף נתוני מערכת (CPU, RAM, Storage, Temperature)
-  - `websocket.py` - WebSocket Manager לניהול connections
+- `app/core/` - Shared services:
+  - `system.py` - System data collection (CPU, RAM, Storage, Temperature)
+  - `websocket.py` - WebSocket Manager for connection management
   - `websocket_router.py` - WebSocket endpoints
-  - `monitor_manager.py` - ניהול monitors עם עדכונים תקופתיים
-  - `templates.py` - תמיכה ב-Jinja2 templates
-  - `static.py` - ניהול קבצים סטטיים
+  - `monitor_manager.py` - Monitor management with periodic updates
+  - `templates.py` - Jinja2 template support
+  - `static.py` - Static file management
 
-- `app/modules/` - מודולי האפליקציה
-- `app/shared/` - תבניות ומשאבים משותפים
-- `app/static/` - קבצים סטטיים (CSS, JS, Images)
+- `app/modules/` - Application modules
+- `app/shared/` - Shared templates and resources
+- `app/static/` - Static files (CSS, JS, Images)
 
-## מודולים
+## Modules
 
-- **Dashboard** - תצוגת נתוני מערכת בזמן אמת עם system monitoring
-- **Flight Controller** - ניהול בקר טיסה (UI בלבד)
-- **Flight Map** - מפה למעקב אחר טיסה (UI בלבד)
-- **Ground Control Station** - תחנת בקרה קרקעית (UI בלבד)
-- **Modem** - ניהול מודם (UI בלבד)
-- **VPN** - ניהול VPN (UI בלבד)
-- **Dynamic DNS** - ניהול Dynamic DNS (UI בלבד)
-- **Camera** - ניהול מצלמה (UI בלבד)
-- **Networks** - ניהול רשתות (UI בלבד)
-- **Users** - ניהול משתמשים (UI בלבד)
-- **Application** - הגדרות אפליקציה (UI בלבד)
+- **Dashboard** - Real-time system data display with system monitoring
+- **Flight Controller** - Flight controller management (UI only)
+- **Flight Map** - Flight tracking map (UI only)
+- **Ground Control Station** - Ground control station (UI only)
+- **Modem** - Modem management (UI only)
+- **VPN** - VPN management (UI only)
+- **Dynamic DNS** - Dynamic DNS management (UI only)
+- **Camera** - Camera management (UI only)
+- **Networks** - Network management (UI only)
+- **Users** - User management (UI only)
+- **Application** - Application settings (UI only)
 
-## טכנולוגיות
+## Technologies
 
 - **Backend**:
   - FastAPI - Web framework
@@ -377,13 +377,13 @@ sudo systemctl stop yt-drone.service
   - Uvicorn - ASGI server
   - Monitor Manager - Periodic task scheduling
 
-## תלויות
+## Dependencies
 
-התלויות העיקריות:
+Main dependencies:
 - `fastapi` - Web framework
 - `uvicorn` - ASGI server
 - `jinja2` - Template engine
 - `psutil` - System information
 - `python-multipart` - Form handling
 
-ראה `requirements.txt` לרשימה מלאה.
+See `requirements.txt` for the full list.
