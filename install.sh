@@ -2,8 +2,7 @@
 set -e
 
 # ===== BASIC SETTINGS =====
-APP_USER="pi"
-APP_DIR="/home/pi/yt-drone"       # Change this if you want a different directory
+# NOTE: APP_USER and APP_DIR are now detected dynamically below
 REPO_URL="https://github.com/yossits/yt-drone.git"  # <- Update if needed!
 SERVICE_NAME="yt-drone.service"
 PYTHON="/usr/bin/python3"
@@ -48,8 +47,23 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+# ===== DETECT REAL USER & APP PATH (DYNAMIC) =====
+# If run via: curl ... | sudo bash  → SUDO_USER is the real user
+# If run directly as root           → fall back to current user and HOME
+if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+  REAL_USER="$SUDO_USER"
+  REAL_HOME="$(eval echo "~$REAL_USER")"
+else
+  REAL_USER="$(id -un)"
+  REAL_HOME="$HOME"
+fi
+
+APP_USER="$REAL_USER"
+APP_DIR="$REAL_HOME/yt-drone"       # Install under the real user's home
+
 c "=== Drone App Installation Wizard ===" "$BOLD"
 info "This will configure UART, install dependencies, clone the app, and create a systemd service."
+info "Installing for user: $APP_USER, home: $REAL_HOME, app dir: $APP_DIR"
 
 # ===== 1. APT PACKAGES =====
 step "Installing system packages (Python, Git, etc)..."
