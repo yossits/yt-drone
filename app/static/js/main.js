@@ -158,12 +158,25 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateFCStatus(connected) {
     if (!fcStatusElement) return;
     
+    const iconElement = fcStatusElement.querySelector(".fc-status-icon");
+    const textElement = fcStatusElement.querySelector(".fc-status-text");
+    
     if (connected) {
-      fcStatusElement.textContent = "FC Connected";
+      if (iconElement) {
+        iconElement.src = "/static/images/icons/fc-connected.svg";
+      }
+      if (textElement) {
+        textElement.textContent = "FC Connected";
+      }
       fcStatusElement.classList.remove("fc-disconnected");
       fcStatusElement.classList.add("fc-connected");
     } else {
-      fcStatusElement.textContent = "FC Disconnected";
+      if (iconElement) {
+        iconElement.src = "/static/images/icons/fc-disconnected.svg";
+      }
+      if (textElement) {
+        textElement.textContent = "FC Disconnected";
+      }
       fcStatusElement.classList.remove("fc-connected");
       fcStatusElement.classList.add("fc-disconnected");
     }

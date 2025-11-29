@@ -39,10 +39,10 @@
 
       <!-- Buttons -->
       <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
-        <button class="btn btn-warning">
+        <button class="btn btn-warning" id="fc-connect-restart-btn">
           Restart
         </button>
-        <button class="btn btn-danger">
+        <button class="btn btn-danger" id="fc-disconnect-btn">
           Disconnect
         </button>
       </div>
@@ -68,4 +68,60 @@
     </p>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const connectRestartBtn = document.getElementById("fc-connect-restart-btn");
+  const disconnectBtn = document.getElementById("fc-disconnect-btn");
+  
+  // Function to update buttons based on FC connection status
+  function updateFCButtons(connected) {
+    if (!connectRestartBtn || !disconnectBtn) return;
+    
+    if (connected) {
+      // FC is connected
+      // Disconnect button: disabled with opacity
+      disconnectBtn.disabled = true;
+      disconnectBtn.classList.add("fc-disconnect-disabled");
+      disconnectBtn.style.opacity = "0.5";
+      disconnectBtn.style.cursor = "not-allowed";
+      
+      // Restart button: stays as "Restart"
+      connectRestartBtn.textContent = "Restart";
+    } else {
+      // FC is not connected
+      // Disconnect button: enabled, normal opacity
+      disconnectBtn.disabled = false;
+      disconnectBtn.classList.remove("fc-disconnect-disabled");
+      disconnectBtn.style.opacity = "1";
+      disconnectBtn.style.cursor = "pointer";
+      
+      // Restart button: changes to "Connect"
+      connectRestartBtn.textContent = "Connect";
+    }
+  }
+  
+  // Function to load FC status from server
+  function loadFCStatus() {
+    fetch("/flight-controller/status")
+      .then(response => response.json())
+      .then(data => {
+        updateFCButtons(data.connected || false);
+      })
+      .catch(error => {
+        console.error("Error loading FC status:", error);
+        // Default to disconnected on error
+        updateFCButtons(false);
+      });
+  }
+  
+  // Load status on page load
+  loadFCStatus();
+  
+  // Update status periodically (every 5 seconds)
+  setInterval(loadFCStatus, 5000);
+});
+</script>
 {% endblock %}
