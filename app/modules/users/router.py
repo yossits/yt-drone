@@ -1,5 +1,5 @@
 """
-Router למודול Users
+Router for Users module
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/", response_class=HTMLResponse)
 async def users_page(request: Request):
-    """דף Users"""
+    """Users page"""
     data = services.get_users_data()
     return templates.TemplateResponse(
         "users/templates/users.html",

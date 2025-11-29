@@ -1,6 +1,6 @@
 """
-שירותים משותפים לאיסוף נתוני מערכת
-ניתן לשימוש חוזר במודולים שונים
+Shared services for system data collection
+Reusable across different modules
 """
 
 import platform
@@ -11,8 +11,8 @@ from typing import Dict, Optional, Tuple
 
 def get_os_info() -> str:
     """
-    מחזיר מידע על מערכת ההפעלה
-    דוגמה: "Debian GNU/Linux 13 (bookworm)"
+    Returns operating system information
+    Example: "Debian GNU/Linux 13 (bookworm)"
     """
     try:
         with open('/etc/os-release', 'r') as f:
@@ -22,17 +22,17 @@ def get_os_info() -> str:
                     key, value = line.strip().split('=', 1)
                     os_info[key] = value.strip('"')
             
-            # דוגמה: "Debian GNU/Linux 13 (bookworm)"
+            # Example: "Debian GNU/Linux 13 (bookworm)"
             return os_info.get('PRETTY_NAME', f"{platform.system()} {platform.release()}")
     except Exception:
-        # fallback ל-platform
+        # fallback to platform
         return f"{platform.system()} {platform.release()}"
 
 
 def get_cpu_info() -> str:
     """
-    מחזיר מידע על המעבד
-    דוגמה: "Sony UK BCM2837 (4 cores)"
+    Returns CPU information
+    Example: "Sony UK BCM2837 (4 cores)"
     """
     try:
         with open('/proc/cpuinfo', 'r') as f:
@@ -45,7 +45,7 @@ def get_cpu_info() -> str:
                     if key not in cpu_info:
                         cpu_info[key] = value
             
-            # דוגמה: "Sony UK BCM2837"
+            # Example: "Sony UK BCM2837"
             model = cpu_info.get('Model', cpu_info.get('Hardware', platform.processor()))
             cpu_count = os.cpu_count() or 1
             
@@ -56,8 +56,8 @@ def get_cpu_info() -> str:
 
 def get_uptime() -> str:
     """
-    מחזיר זמן פעילות של המערכת
-    דוגמה: "0 days 9 hours 12 minutes"
+    Returns system uptime
+    Example: "0 days 9 hours 12 minutes"
     """
     try:
         with open('/proc/uptime', 'r') as f:
@@ -73,8 +73,8 @@ def get_uptime() -> str:
 
 def get_cpu_temperature() -> Optional[float]:
     """
-    מחזיר טמפרטורת CPU ב-°C
-    None אם לא ניתן לקרוא
+    Returns CPU temperature in °C
+    None if cannot be read
     """
     try:
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
@@ -86,7 +86,7 @@ def get_cpu_temperature() -> Optional[float]:
 
 def get_temperature_class(temperature: Optional[float]) -> str:
     """
-    מחזיר את ה-CSS class לפי טמפרטורה
+    Returns CSS class based on temperature
     cold: < 40°C
     normal: 40-55°C
     warm: 55-70°C
@@ -107,7 +107,7 @@ def get_temperature_class(temperature: Optional[float]) -> str:
 
 def get_cpu_usage() -> float:
     """
-    מחזיר אחוז שימוש ב-CPU
+    Returns CPU usage percentage
     """
     try:
         return round(psutil.cpu_percent(interval=1), 1)
@@ -117,8 +117,8 @@ def get_cpu_usage() -> float:
 
 def get_ram_usage() -> Tuple[str, str, float]:
     """
-    מחזיר נתוני RAM: (used, total, percent)
-    דוגמה: ("1.2GB", "4.0GB", 30.0)
+    Returns RAM data: (used, total, percent)
+    Example: ("1.2GB", "4.0GB", 30.0)
     """
     try:
         ram = psutil.virtual_memory()
@@ -133,8 +133,8 @@ def get_ram_usage() -> Tuple[str, str, float]:
 
 def get_static_info() -> Dict:
     """
-    נתונים סטטיים שלא משתנים
-    לשימוש בעדכון חד פעמי
+    Static data that doesn't change
+    For use in one-time updates
     """
     ram_used, ram_total, _ = get_ram_usage()
     
@@ -147,15 +147,15 @@ def get_static_info() -> Dict:
 
 def get_storage_info() -> Dict:
     """
-    מחזיר נתוני Storage עבור Boot ו-Root partitions
+    Returns Storage data for Boot and Root partitions
     Returns:
-        dict עם boot ו-root storage info
+        dict with boot and root storage info
     """
     try:
         boot_info = None
         root_info = None
         
-        # איסוף נתונים על כל ה-partitions
+        # Collect data on all partitions
         partitions = psutil.disk_partitions()
         
         for partition in partitions:
@@ -201,7 +201,7 @@ def get_storage_info() -> Dict:
                     root_info = partition_info
                     
             except PermissionError:
-                # חלק מה-partitions לא נגישים
+                # Some partitions are not accessible
                 continue
         
         return {
@@ -245,8 +245,8 @@ def get_storage_info() -> Dict:
 
 def get_slow_dynamic_info() -> Dict:
     """
-    נתונים דינמיים שמשתנים לאט
-    לשימוש בעדכון כל 60 שניות
+    Dynamic data that changes slowly
+    For use in updates every 60 seconds
     """
     storage_data = get_storage_info()
     
@@ -259,8 +259,8 @@ def get_slow_dynamic_info() -> Dict:
 
 def get_fast_dynamic_info() -> Dict:
     """
-    נתונים דינמיים שמשתנים במהירות
-    לשימוש בעדכון כל 5 שניות
+    Dynamic data that changes quickly
+    For use in updates every 5 seconds
     """
     cpu_temp = get_cpu_temperature()
     cpu_temp_percent = min(100, int((cpu_temp / 85) * 100)) if cpu_temp else 0  # 85°C = 100%
@@ -280,9 +280,9 @@ def get_fast_dynamic_info() -> Dict:
 
 def get_system_info() -> Dict:
     """
-    פונקציה מרכזית שמחזירה dict עם כל נתוני המערכת
-    לשימוש ב-WebSocket ו-services
-    שמורה לתאימות לאחור
+    Central function that returns dict with all system data
+    For use in WebSocket and services
+    Kept for backward compatibility
     """
     cpu_temp = get_cpu_temperature()
     cpu_temp_percent = min(100, int((cpu_temp / 85) * 100)) if cpu_temp else 0  # 85°C = 100%

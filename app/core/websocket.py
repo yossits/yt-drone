@@ -1,6 +1,6 @@
 """
-WebSocket Manager לניהול connections ו-topics
-מאפשר ניהול מרכזי של כל ה-WebSocket connections באפליקציה
+WebSocket Manager for managing connections and topics
+Enables centralized management of all WebSocket connections in the application
 """
 
 from typing import Set, Dict, Optional
@@ -13,22 +13,22 @@ logger = logging.getLogger(__name__)
 
 class WebSocketManager:
     """
-    מנהל WebSocket connections ו-topics
+    Manages WebSocket connections and topics
     """
     
     def __init__(self):
-        """אתחול המנהל"""
+        """Initialize the manager"""
         self.connections: Set[WebSocket] = set()
         self.topics: Dict[str, Set[WebSocket]] = {}
     
     async def connect(self, websocket: WebSocket, topic: Optional[str] = None) -> bool:
         """
-        חיבור client ל-WebSocket
+        Connect client to WebSocket
         Args:
             websocket: WebSocket connection
-            topic: Topic ספציפי (אופציונלי)
+            topic: Specific topic (optional)
         Returns:
-            True אם החיבור הצליח, False אחרת
+            True if connection succeeded, False otherwise
         """
         try:
             await websocket.accept()
@@ -45,17 +45,17 @@ class WebSocketManager:
     
     def disconnect(self, websocket: WebSocket) -> None:
         """
-        ניתוק client
+        Disconnect client
         Args:
-            websocket: WebSocket connection לניתוק
+            websocket: WebSocket connection to disconnect
         """
         if websocket in self.connections:
             self.connections.remove(websocket)
         
-        # הסרת ה-connection מכל ה-topics
+        # Remove connection from all topics
         for topic in list(self.topics.keys()):
             self.topics[topic].discard(websocket)
-            # הסרת topics ריקים
+            # Remove empty topics
             if not self.topics[topic]:
                 del self.topics[topic]
         
@@ -63,12 +63,12 @@ class WebSocketManager:
     
     async def subscribe(self, websocket: WebSocket, topic: str) -> bool:
         """
-        הרשמה ל-topic
+        Subscribe to topic
         Args:
             websocket: WebSocket connection
-            topic: שם ה-topic
+            topic: Topic name
         Returns:
-            True אם ההרשמה הצליחה
+            True if subscription succeeded
         """
         try:
             if topic not in self.topics:
@@ -83,26 +83,26 @@ class WebSocketManager:
     
     def unsubscribe(self, websocket: WebSocket, topic: str) -> None:
         """
-        ביטול הרשמה ל-topic
+        Unsubscribe from topic
         Args:
             websocket: WebSocket connection
-            topic: שם ה-topic
+            topic: Topic name
         """
         if topic in self.topics:
             self.topics[topic].discard(websocket)
-            # הסרת topic ריק
+            # Remove empty topic
             if not self.topics[topic]:
                 del self.topics[topic]
             logger.debug(f"WebSocket unsubscribed from topic: {topic}")
     
     async def send_personal_message(self, websocket: WebSocket, message: dict) -> bool:
         """
-        שליחת הודעה ל-connection ספציפי
+        Send message to specific connection
         Args:
             websocket: WebSocket connection
-            message: הודעה לשליחה (dict)
+            message: Message to send (dict)
         Returns:
-            True אם השליחה הצליחה, False אחרת
+            True if send succeeded, False otherwise
         """
         try:
             await websocket.send_json(message)
@@ -113,12 +113,12 @@ class WebSocketManager:
     
     async def broadcast(self, topic: str, data: dict) -> int:
         """
-        שליחת עדכון לכל ה-subscribers של topic
+        Send update to all subscribers of topic
         Args:
-            topic: שם ה-topic
-            data: נתונים לשליחה
+            topic: Topic name
+            data: Data to send
         Returns:
-            מספר ה-connections שקיבלו את ההודעה
+            Number of connections that received the message
         """
         if topic not in self.topics:
             logger.debug(f"No subscribers for topic: {topic}")
@@ -140,7 +140,7 @@ class WebSocketManager:
                 logger.warning(f"Error broadcasting to WebSocket: {e}")
                 disconnected.add(websocket)
         
-        # ניקוי connections מנותקים
+        # Clean up disconnected connections
         for ws in disconnected:
             self.disconnect(ws)
         
@@ -149,11 +149,11 @@ class WebSocketManager:
     
     async def broadcast_to_all(self, data: dict) -> int:
         """
-        שליחת הודעה לכל ה-connections
+        Send message to all connections
         Args:
-            data: נתונים לשליחה
+            data: Data to send
         Returns:
-            מספר ה-connections שקיבלו את ההודעה
+            Number of connections that received the message
         """
         message = {
             "topic": "broadcast",
@@ -171,7 +171,7 @@ class WebSocketManager:
                 logger.warning(f"Error broadcasting to all: {e}")
                 disconnected.add(websocket)
         
-        # ניקוי connections מנותקים
+        # Clean up disconnected connections
         for ws in disconnected:
             self.disconnect(ws)
         
@@ -180,31 +180,31 @@ class WebSocketManager:
     
     def get_connection_count(self) -> int:
         """
-        מחזיר מספר connections פעילים
+        Returns number of active connections
         Returns:
-            מספר connections
+            Number of connections
         """
         return len(self.connections)
     
     def get_topic_subscribers_count(self, topic: str) -> int:
         """
-        מחזיר מספר subscribers ל-topic
+        Returns number of subscribers to topic
         Args:
-            topic: שם ה-topic
+            topic: Topic name
         Returns:
-            מספר subscribers
+            Number of subscribers
         """
         return len(self.topics.get(topic, set()))
     
     def get_topics(self) -> list:
         """
-        מחזיר רשימת כל ה-topics
+        Returns list of all topics
         Returns:
-            רשימת topics
+            List of topics
         """
         return list(self.topics.keys())
 
 
-# יצירת instance גלובלי של המנהל
+# Create global instance of the manager
 websocket_manager = WebSocketManager()
 

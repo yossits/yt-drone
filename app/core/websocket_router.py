@@ -1,5 +1,5 @@
 """
-WebSocket Router - ניהול WebSocket endpoints
+WebSocket Router - managing WebSocket endpoints
 """
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
@@ -17,16 +17,16 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 @router.websocket("/")
 async def websocket_endpoint(websocket: WebSocket, topic: str = Query(None)):
     """
-    WebSocket endpoint ראשי
+    Main WebSocket endpoint
     Args:
         websocket: WebSocket connection
-        topic: Topic ספציפי (אופציונלי, ניתן להעביר כ-query parameter)
+        topic: Specific topic (optional, can be passed as query parameter)
     """
     await websocket_manager.connect(websocket, topic)
     
     try:
         while True:
-            # קבלת הודעות מה-client (אם נדרש)
+            # Receive messages from client (if needed)
             data = await websocket.receive_text()
             
             try:
@@ -73,16 +73,16 @@ async def websocket_endpoint(websocket: WebSocket, topic: str = Query(None)):
 @router.websocket("/{topic}")
 async def websocket_topic_endpoint(websocket: WebSocket, topic: str):
     """
-    WebSocket endpoint עם topic ספציפי
+    WebSocket endpoint with specific topic
     Args:
         websocket: WebSocket connection
-        topic: שם ה-topic
+        topic: Topic name
     """
     await websocket_manager.connect(websocket, topic)
     
     try:
         while True:
-            # קבלת הודעות מה-client (אם נדרש)
+            # Receive messages from client (if needed)
             data = await websocket.receive_text()
             
             try:
@@ -118,7 +118,7 @@ async def websocket_topic_endpoint(websocket: WebSocket, topic: str):
 @router.get("/status")
 async def websocket_status():
     """
-    מחזיר סטטוס של WebSocket connections
+    Returns status of WebSocket connections
     """
     return {
         "connections": websocket_manager.get_connection_count(),

@@ -1,5 +1,5 @@
 """
-Router למודול Modem
+Router for Modem module
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/modem", tags=["modem"])
 
 @router.get("/", response_class=HTMLResponse)
 async def modem_page(request: Request):
-    """דף Modem"""
+    """Modem page"""
     data = services.get_modem_data()
     return templates.TemplateResponse(
         "modem/templates/modem.html",

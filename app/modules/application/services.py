@@ -1,9 +1,9 @@
 """
-לוגיקה ונתוני דמו למודול Application
+Logic and demo data for Application module
 """
 
 def get_application_data():
-    """מחזיר נתוני דמו ל-Application"""
+    """Returns demo data for Application"""
     return {
         "app_name": "YT-Drone",
         "version": "1.0.0",

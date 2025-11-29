@@ -16,7 +16,7 @@
     --border-radius-lg: 12px;
     --transition: all 0.5s ease;
     --sidebar-transition: all 1.2s ease;
-    /* הגדלה מ-0.8s ל-1.2s */
+    /* Increased from 0.8s to 1.2s */
 }
 
 body {
@@ -191,7 +191,7 @@ body {
     overflow-y: auto;
     z-index: 100;
     transition: width var(--sidebar-transition), transform var(--sidebar-transition);
-    /* הוספת transform */
+    /* Added transform */
     display: flex;
     flex-direction: column;
 }
@@ -401,27 +401,27 @@ body.sidebar-collapsed .main-content {
     font-size: 13px;
 }
 
-/* System Information Card - סגנונות מותאמים */
+/* System Information Card - custom styles */
 .card-compact[data-ws-topic="system_info"] .form-label {
     color: var(--text-secondary);
-    /* צבע פחות בהיר */
+    /* Less bright color */
 }
 
 .card-compact[data-ws-topic="system_info"] .info-box {
     background: transparent;
-    /* הסרת המעטפת האפורה */
+    /* Removed gray wrapper */
     padding: 0;
-    /* הסרת padding */
+    /* Removed padding */
     border: none;
-    /* הסרת border */
+    /* Removed border */
     border-radius: 0;
-    /* הסרת border-radius */
+    /* Removed border-radius */
     color: var(--text-primary);
-    /* צבע בהיר (מותאם לערכות נושא) */
+    /* Bright color (adapted to themes) */
     font-size: 17px;
-    /* הגדלת גודל הפונט מ-13px */
+    /* Increased font size from 13px */
     font-weight: 600;
-    /* הדגשה - משקל פונט כבד יותר */
+    /* Emphasis - heavier font weight */
 }
 
 .card-compact .storage-grid-wrapper {
@@ -711,7 +711,7 @@ select option:checked:hover,
     height: 100%;
     border-radius: 10px;
     transition: width 0.3s ease;
-    /* ברירת מחדל - כחול */
+    /* Default - blue */
 }
 
 /* Progress Bar Status Colors */
@@ -735,15 +735,15 @@ select option:checked:hover,
 .progress-bar.progress-bar-temp {
     background: linear-gradient(to right,
             #007bff 0%,
-            /* כחול - 0°C */
+            /* Blue - 0°C */
             #00c853 47%,
-            /* ירוק - 40°C */
+            /* Green - 40°C */
             #ffeb3b 65%,
-            /* צהוב - 55°C */
+            /* Yellow - 55°C */
             #ff9800 82%,
-            /* כתום - 70°C */
+            /* Orange - 70°C */
             #f44336 100%
-            /* אדום - 85°C+ */
+            /* Red - 85°C+ */
         ) !important;
     position: relative;
     overflow: hidden;
@@ -761,7 +761,7 @@ select option:checked:hover,
     z-index: 1;
 }
 
-/* הסרת fill ישן לטמפרטורה */
+/* Removed old fill for temperature */
 .progress-bar-temp .progress-bar-fill {
     display: none;
 }
@@ -770,15 +770,15 @@ select option:checked:hover,
 .progress-bar.progress-bar-cpu {
     background: linear-gradient(to right,
             #007bff 0%,
-            /* כחול - 0°C */
+            /* Blue - 0°C */
             #00c853 47%,
-            /* ירוק - 40°C */
+            /* Green - 40°C */
             #ffeb3b 65%,
-            /* צהוב - 55°C */
+            /* Yellow - 55°C */
             #ff9800 82%,
-            /* כתום - 70°C */
+            /* Orange - 70°C */
             #f44336 100%
-            /* אדום - 85°C+ */
+            /* Red - 85°C+ */
         ) !important;
     position: relative;
     overflow: hidden;
@@ -803,15 +803,15 @@ select option:checked:hover,
 .progress-bar.progress-bar-ram {
     background: linear-gradient(to right,
             #007bff 0%,
-            /* כחול - 0°C */
+            /* Blue - 0°C */
             #00c853 47%,
-            /* ירוק - 40°C */
+            /* Green - 40°C */
             #ffeb3b 65%,
-            /* צהוב - 55°C */
+            /* Yellow - 55°C */
             #ff9800 82%,
-            /* כתום - 70°C */
+            /* Orange - 70°C */
             #f44336 100%
-            /* אדום - 85°C+ */
+            /* Red - 85°C+ */
         ) !important;
     position: relative;
     overflow: hidden;

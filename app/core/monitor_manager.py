@@ -1,5 +1,5 @@
 """
-Monitor Manager - ניהול 3 monitors לפי תדירות
+Monitor Manager - managing 3 monitors by frequency
 """
 
 import asyncio
@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 class MonitorManager:
     """
-    מנהל 3 monitors: fast (5s), slow (60s), static (once)
+    Manages 3 monitors: fast (5s), slow (60s), static (once)
     """
     
     def __init__(self):
-        """אתחול המנהל"""
+        """Initialize the manager"""
         self.monitors: Dict[str, Dict] = {}  # topic -> {task, interval, data_function}
-        self.static_sent: set = set()  # topics סטטיים שכבר נשלחו
+        self.static_sent: set = set()  # static topics that have already been sent
     
     def register_monitor(
         self,
@@ -29,13 +29,13 @@ class MonitorManager:
         interval: Optional[float] = None
     ) -> bool:
         """
-        רישום monitor חדש
+        Register a new monitor
         Args:
-            topic: שם ה-topic (למשל: "fast_info")
-            data_function: פונקציה שמחזירה dict עם הנתונים
-            interval: מרווח זמן בשניות (None = חד פעמי)
+            topic: Topic name (e.g., "fast_info")
+            data_function: Function that returns dict with data
+            interval: Time interval in seconds (None = one-time)
         Returns:
-            True אם הרישום הצליח, False אם כבר קיים
+            True if registration succeeded, False if already exists
         """
         if topic in self.monitors:
             logger.warning(f"Monitor '{topic}' already registered")
@@ -51,19 +51,19 @@ class MonitorManager:
     
     async def start_all(self) -> None:
         """
-        הפעלת כל ה-monitors
+        Start all monitors
         """
         for topic, monitor_info in self.monitors.items():
             if monitor_info["task"] is not None:
-                continue  # כבר רץ
+                continue  # already running
             
             interval = monitor_info["interval"]
             
             if interval is None:
-                # עדכון חד פעמי
+                # one-time update
                 task = asyncio.create_task(self._send_one_time(topic))
             else:
-                # עדכון תקופתי
+                # periodic update
                 task = asyncio.create_task(self._monitor_loop(topic, interval))
             
             monitor_info["task"] = task
@@ -71,7 +71,7 @@ class MonitorManager:
     
     async def stop_all(self) -> None:
         """
-        עצירת כל ה-monitors
+        Stop all monitors
         """
         logger.info("Stopping all monitors...")
         for topic, monitor_info in self.monitors.items():
@@ -80,7 +80,7 @@ class MonitorManager:
                 logger.debug(f"Cancelling monitor '{topic}'")
                 task.cancel()
                 try:
-                    # המתנה עם timeout כדי למנוע מצב שבו shutdown נתקע
+                    # Wait with timeout to prevent shutdown from getting stuck
                     await asyncio.wait_for(task, timeout=5.0)
                     logger.debug(f"Monitor '{topic}' stopped successfully")
                 except asyncio.TimeoutError:
@@ -97,11 +97,11 @@ class MonitorManager:
     
     async def _send_one_time(self, topic: str) -> None:
         """
-        שליחת עדכון חד פעמי
+        Send one-time update
         """
         if topic in self.static_sent:
             logger.debug(f"Static info for '{topic}' already sent, skipping")
-            return  # כבר נשלח
+            return  # already sent
         
         try:
             monitor_info = self.monitors.get(topic)
@@ -111,7 +111,7 @@ class MonitorManager:
             
             data_function = monitor_info["data_function"]
             
-            # איסוף נתונים
+            # Collect data
             logger.debug(f"Collecting data for static topic '{topic}'")
             data = data_function()
             if not isinstance(data, dict):
@@ -120,14 +120,14 @@ class MonitorManager:
             
             data["timestamp"] = datetime.now().isoformat()
             
-            # המתנה קצרה כדי שה-clients יספיקו לעשות subscribe
+            # Short wait so clients have time to subscribe
             await asyncio.sleep(1)
             
-            # שליחה דרך WebSocket
+            # Send via WebSocket
             sent_count = await websocket_manager.broadcast(topic, data)
             
-            # עדכון static_sent רק אחרי שליחה מוצלחת
-            if sent_count >= 0:  # גם אם אין subscribers, זה נחשב הצלחה
+            # Update static_sent only after successful send
+            if sent_count >= 0:  # Even if there are no subscribers, this is considered success
                 self.static_sent.add(topic)
                 logger.info(f"Sent one-time update for '{topic}' to {sent_count} connections")
             else:
@@ -140,11 +140,11 @@ class MonitorManager:
     
     async def _monitor_loop(self, topic: str, interval: float) -> None:
         """
-        לולאת monitoring תקופתי
+        Periodic monitoring loop
         """
         logger.info(f"Starting monitor loop for '{topic}' with interval: {interval}s")
         
-        # שליחה מיד בהתחלה (לפני ה-sleep הראשון)
+        # Send immediately at start (before the first sleep)
         try:
             monitor_info = self.monitors.get(topic)
             if not monitor_info:
@@ -161,7 +161,7 @@ class MonitorManager:
             
             data["timestamp"] = datetime.now().isoformat()
             
-            # המתנה קצרה כדי שה-clients יספיקו לעשות subscribe
+            # Short wait so clients have time to subscribe
             await asyncio.sleep(1)
             
             sent_count = await websocket_manager.broadcast(topic, data)
@@ -175,9 +175,9 @@ class MonitorManager:
             return
         except Exception as e:
             logger.error(f"Error in initial broadcast for '{topic}': {e}", exc_info=True)
-            # ממשיכים גם אם יש שגיאה בהתחלה
+            # Continue even if there's an error at the start
         
-        # עכשיו הלולאה הרגילה
+        # Now the regular loop
         consecutive_errors = 0
         max_consecutive_errors = 5
         
@@ -190,7 +190,7 @@ class MonitorManager:
                 
                 data_function = monitor_info["data_function"]
                 
-                # איסוף נתונים
+                # Collect data
                 logger.debug(f"Collecting data for topic '{topic}'")
                 data = data_function()
                 if not isinstance(data, dict):
@@ -204,13 +204,13 @@ class MonitorManager:
                 
                 data["timestamp"] = datetime.now().isoformat()
                 
-                # המתנה לפני העדכון הבא
+                # Wait before next update
                 await asyncio.sleep(interval)
                 
-                # שליחה דרך WebSocket
+                # Send via WebSocket
                 sent_count = await websocket_manager.broadcast(topic, data)
                 
-                # איפוס מונה שגיאות אחרי שליחה מוצלחת
+                # Reset error counter after successful send
                 if consecutive_errors > 0:
                     logger.info(f"Monitor '{topic}' recovered after {consecutive_errors} errors")
                     consecutive_errors = 0
@@ -236,10 +236,10 @@ class MonitorManager:
                 if consecutive_errors >= max_consecutive_errors:
                     logger.error(f"Too many consecutive errors ({consecutive_errors}) for '{topic}', stopping loop")
                     break
-                # במקרה של שגיאה, ממתינים לפני ניסיון נוסף
+                # In case of error, wait before next attempt
                 await asyncio.sleep(interval)
 
 
-# יצירת instance גלובלי
+# Create global instance
 monitor_manager = MonitorManager()
 

@@ -1,5 +1,5 @@
 """
-Router למודול Dashboard
+Router for Dashboard module
 """
 
 from fastapi import APIRouter, Request
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/", response_class=HTMLResponse)
 async def dashboard_page(request: Request):
-    """דף Dashboard הראשי"""
+    """Main Dashboard page"""
     data = services.get_dashboard_data()
     return templates.TemplateResponse(
         "dashboard/templates/dashboard.html", {"request": request, **data}

@@ -1,10 +1,10 @@
 """
-לוגיקה ונתוני דמו למודול Flight Controller
+Logic and demo data for Flight Controller module
 """
 
 
 def get_flight_controller_data():
-    """מחזיר נתוני דמו ל-Flight Controller"""
+    """Returns demo data for Flight Controller"""
     return {
         "flight_mode": "GUIDED",
         "arm_status": "ARMED",

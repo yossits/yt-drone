@@ -1,9 +1,9 @@
 """
-לוגיקה ונתוני דמו למודול Camera
+Logic and demo data for Camera module
 """
 
 def get_camera_data():
-    """מחזיר נתוני דמו ל-Camera"""
+    """Returns demo data for Camera"""
     return {
         "status": "Connected",
         "resolution": "1920x1080",

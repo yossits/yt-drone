@@ -1,9 +1,9 @@
 """
-לוגיקה ונתוני דמו למודול Networks
+Logic and demo data for Networks module
 """
 
 def get_networks_data():
-    """מחזיר נתוני דמו ל-Networks"""
+    """Returns demo data for Networks"""
     return {
         "networks": [
             {

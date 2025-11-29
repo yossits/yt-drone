@@ -1,5 +1,5 @@
 """
-Router למודול VPN
+Router for VPN module
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/vpn", tags=["vpn"])
 
 @router.get("/", response_class=HTMLResponse)
 async def vpn_page(request: Request):
-    """דף VPN"""
+    """VPN page"""
     data = services.get_vpn_data()
     return templates.TemplateResponse(
         "vpn/templates/vpn.html",

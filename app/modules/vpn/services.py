@@ -1,9 +1,9 @@
 """
-לוגיקה ונתוני דמו למודול VPN
+Logic and demo data for VPN module
 """
 
 def get_vpn_data():
-    """מחזיר נתוני דמו ל-VPN"""
+    """Returns demo data for VPN"""
     return {
         "enabled": True,
         "server": "vpn.example.com",

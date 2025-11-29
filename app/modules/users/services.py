@@ -1,9 +1,9 @@
 """
-לוגיקה ונתוני דמו למודול Users
+Logic and demo data for Users module
 """
 
 def get_users_data():
-    """מחזיר נתוני דמו ל-Users"""
+    """Returns demo data for Users"""
     return {
         "users": [
             {

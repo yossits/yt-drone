@@ -1,5 +1,5 @@
 """
-Router למודול Camera
+Router for Camera module
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/camera", tags=["camera"])
 
 @router.get("/", response_class=HTMLResponse)
 async def camera_page(request: Request):
-    """דף Camera"""
+    """Camera page"""
     data = services.get_camera_data()
     return templates.TemplateResponse(
         "camera/templates/camera.html",

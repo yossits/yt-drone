@@ -1,18 +1,18 @@
 """
-הגדרות גלובליות לאפליקציה
+Global application settings
 """
 
 from typing import Optional
 
 
 class Settings:
-    """הגדרות האפליקציה"""
+    """Application settings"""
 
     APP_NAME: str = "YT-Drone"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 
-    # נתיבים
+    # Paths
     TEMPLATES_DIR: str = "templates"
     STATIC_DIR: str = "static"
 

@@ -1,48 +1,48 @@
 """
-ניהול Jinja2 Templates משותף
+Shared Jinja2 Templates management
 """
 
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-# נתיבים
+# Paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SHARED_TEMPLATES_DIR = BASE_DIR / "app" / "shared" / "templates"
 MODULES_DIR = BASE_DIR / "app" / "modules"
 
-# יצירת Jinja2 Environment עם מספר directories
-# הסדר חשוב - base.html צריך להיות נגיש מהתיקייה הראשונה
+# Create Jinja2 Environment with multiple directories
+# Order is important - base.html needs to be accessible from the first directory
 env = Environment(
     loader=FileSystemLoader(
         [
             str(
                 SHARED_TEMPLATES_DIR
-            ),  # templates משותפים (base.html) - נגיש כ-"base.html"
+            ),  # shared templates (base.html) - accessible as "base.html"
             str(
                 MODULES_DIR
-            ),  # templates של מודולים - נגישים כ-"dashboard/templates/dashboard.html"
+            ),  # module templates - accessible as "dashboard/templates/dashboard.html"
         ]
     ),
     autoescape=select_autoescape(["html", "xml"]),
 )
 
-# הוספת helper function ל-Jinja2
+# Add helper function to Jinja2
 def get_path(request):
-    """מחזיר את ה-path של ה-request ללא trailing slash"""
+    """Returns the request path without trailing slash"""
     path = str(request.url.path).rstrip('/')
     return path if path else '/'
 
 env.globals['get_path'] = get_path
 
-# Wrapper ל-Jinja2Templates שתומך במספר directories
+# Wrapper for Jinja2Templates that supports multiple directories
 class CustomJinja2Templates:
-    """Wrapper ל-Jinja2Templates שתומך במספר directories"""
+    """Wrapper for Jinja2Templates that supports multiple directories"""
 
     def __init__(self, env: Environment):
         self.env = env
 
     def TemplateResponse(self, name: str, context: dict):
-        """מחזיר TemplateResponse עם template מהשם הנתון"""
+        """Returns TemplateResponse with template from the given name"""
         from fastapi.responses import HTMLResponse
 
         template = self.env.get_template(name)
@@ -50,5 +50,5 @@ class CustomJinja2Templates:
         return HTMLResponse(content=content)
 
 
-# יצירת instance מותאם אישית
+# Create custom instance
 templates = CustomJinja2Templates(env)

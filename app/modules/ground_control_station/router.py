@@ -1,5 +1,5 @@
 """
-Router למודול Ground Control Station
+Router for Ground Control Station module
 """
 from typing import List
 from fastapi import APIRouter, Request
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ground-control-station", tags=["ground-control-stati
 
 
 class Destination(BaseModel):
-    """מודל ל-destination"""
+    """Model for destination"""
     name: str
     ip: str
     port: str
@@ -21,13 +21,13 @@ class Destination(BaseModel):
 
 
 class DestinationsRequest(BaseModel):
-    """מודל לבקשת שמירת destinations"""
+    """Model for save destinations request"""
     destinations: List[Destination]
 
 
 @router.get("/", response_class=HTMLResponse)
 async def gcs_page(request: Request):
-    """דף Ground Control Station"""
+    """Ground Control Station page"""
     data = services.get_gcs_data()
     return templates.TemplateResponse(
         "ground_control_station/templates/ground_control_station.html",
@@ -37,7 +37,7 @@ async def gcs_page(request: Request):
 
 @router.post("/destinations")
 async def save_destinations(request: DestinationsRequest):
-    """שומר destinations"""
+    """Save destinations"""
     destinations_data = [dest.dict() for dest in request.destinations]
     success = services.save_destinations(destinations_data)
     

@@ -1,10 +1,10 @@
 """
-לוגיקה ונתוני דמו למודול Flight Map
+Logic and demo data for Flight Map module
 """
 
 
 def get_flight_map_data():
-    """מחזיר נתוני דמו ל-Flight Map"""
+    """Returns demo data for Flight Map"""
     return {
         "current_lat": 31.7683,
         "current_lon": 35.2137,

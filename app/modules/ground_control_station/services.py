@@ -1,24 +1,24 @@
 """
-לוגיקה ונתוני דמו למודול Ground Control Station
+Logic and demo data for Ground Control Station module
 """
 import json
 import os
 from datetime import datetime
 from pathlib import Path
 
-# נתיב לקובץ הנתונים
+# Path to data file
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 DESTINATIONS_FILE = DATA_DIR / "ground_control_station.json"
 
 
 def ensure_data_dir():
-    """יוצר את תיקיית data אם היא לא קיימת"""
+    """Creates the data directory if it doesn't exist"""
     DATA_DIR.mkdir(exist_ok=True)
 
 
 def load_destinations():
-    """טוען destinations מקובץ JSON"""
+    """Loads destinations from JSON file"""
     ensure_data_dir()
     
     if not DESTINATIONS_FILE.exists():
@@ -33,7 +33,7 @@ def load_destinations():
 
 
 def save_destinations(destinations):
-    """שומר destinations לקובץ JSON"""
+    """Saves destinations to JSON file"""
     ensure_data_dir()
     
     data = {
@@ -49,7 +49,7 @@ def save_destinations(destinations):
 
 
 def get_gcs_data():
-    """מחזיר נתוני דמו ל-Ground Control Station"""
+    """Returns demo data for Ground Control Station"""
     destinations = load_destinations()
     
     return {

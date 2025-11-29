@@ -1,5 +1,5 @@
 """
-מודלים משותפים (אם יהיו)
+Shared models (if any)
 """
 
-# בשלב זה ריק, בעתיד ניתן להוסיף מודלים משותפים
+# Currently empty, shared models can be added in the future

@@ -1,10 +1,10 @@
 """
-לוגיקה ונתוני דמו למודול Dynamic DNS
+Logic and demo data for Dynamic DNS module
 """
 
 
 def get_dns_data():
-    """מחזיר נתוני דמו ל-Dynamic DNS"""
+    """Returns demo data for Dynamic DNS"""
     return {
         "enabled": True,
         "provider": "DuckDNS",
