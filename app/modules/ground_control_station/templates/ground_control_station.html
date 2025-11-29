@@ -143,10 +143,13 @@ document.addEventListener("DOMContentLoaded", function() {
     card.innerHTML = `
         <div class="card-header">
         <h3 class="card-title card-title-no-margin">${titleEscaped}</h3>
-        <label class="toggle-switch">
-          <input type="checkbox" class="toggle-switch-input destination-enabled" ${destChecked}>
-          <span class="toggle-switch-slider"></span>
-        </label>
+        <div class="setting-row-no-bg">
+          <label class="form-label no-margin">Enable Endpoint</label>
+          <label class="toggle-switch">
+            <input type="checkbox" class="toggle-switch-input destination-enabled" ${destChecked}>
+            <span class="toggle-switch-slider"></span>
+          </label>
+        </div>
         </div>
         <div class="card-body">
         <div class="form-group">
@@ -216,77 +219,96 @@ document.addEventListener("DOMContentLoaded", function() {
     // Get the first card (leftmost card)
     const firstCard = grid.querySelector('.destination-card');
     
-    let name = '';
-    let ip = '';
-    let port = '';
-    let destEnabled = false;
-    let telemetryEnabled = false;
-    
-    if (firstCard) {
-      // Get Name from first input
-      const nameInput = firstCard.querySelector('.form-group:nth-child(1) .form-input');
-      if (nameInput) {
-        name = nameInput.value || '';
+    // Check if the first card is empty
+    if (isCardEmpty(firstCard)) {
+      // If empty, create a new card with default values
+      const newCard = createDestinationCard();
+      grid.appendChild(newCard);
+    } else {
+      // If not empty, copy values from first card to new card
+      let name = '';
+      let ip = '';
+      let port = '';
+      let destEnabled = false;
+      let telemetryEnabled = false;
+      
+      if (firstCard) {
+        // Get Name from first input
+        const nameInput = firstCard.querySelector('.form-group:nth-child(1) .form-input');
+        if (nameInput) {
+          name = nameInput.value || '';
+        }
+        
+        // Get Destination IP from second input
+        const ipInput = firstCard.querySelector('.form-group:nth-child(2) .form-input');
+        if (ipInput) {
+          ip = ipInput.value || '';
+        }
+        
+        // Get Telemetry Port from third input
+        const portInput = firstCard.querySelector('.form-group:nth-child(3) .form-input');
+        if (portInput) {
+          port = portInput.value || '';
+        }
+        
+        // Get destination enabled checkbox state
+        const destEnabledCheckbox = firstCard.querySelector('.destination-enabled');
+        if (destEnabledCheckbox) {
+          destEnabled = destEnabledCheckbox.checked;
+        }
+        
+        // Get telemetry enabled checkbox state
+        const telemetryEnabledCheckbox = firstCard.querySelector('.telemetry-enabled');
+        if (telemetryEnabledCheckbox) {
+          telemetryEnabled = telemetryEnabledCheckbox.checked;
+        }
       }
       
-      // Get Destination IP from second input
-      const ipInput = firstCard.querySelector('.form-group:nth-child(2) .form-input');
-      if (ipInput) {
-        ip = ipInput.value || '';
+      const newCard = createDestinationCard(name, ip, port, destEnabled, telemetryEnabled);
+      grid.appendChild(newCard);
+      
+      // Clear the first card (leftmost card) after creating new card
+      if (firstCard) {
+        // Clear all input fields
+        const inputs = firstCard.querySelectorAll('.form-input');
+        inputs.forEach(input => input.value = '');
+        
+        // Uncheck all checkboxes
+        const checkboxes = firstCard.querySelectorAll('.toggle-switch-input');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+        
+        // Update card title to "New Destination"
+        updateCardTitle(firstCard, '');
       }
-      
-      // Get Telemetry Port from third input
-      const portInput = firstCard.querySelector('.form-group:nth-child(3) .form-input');
-      if (portInput) {
-        port = portInput.value || '';
-      }
-      
-      // Get destination enabled checkbox state
-      const destEnabledCheckbox = firstCard.querySelector('.destination-enabled');
-      if (destEnabledCheckbox) {
-        destEnabled = destEnabledCheckbox.checked;
-      }
-      
-      // Get telemetry enabled checkbox state
-      const telemetryEnabledCheckbox = firstCard.querySelector('.telemetry-enabled');
-      if (telemetryEnabledCheckbox) {
-        telemetryEnabled = telemetryEnabledCheckbox.checked;
-      }
-    }
-    
-    const newCard = createDestinationCard(name, ip, port, destEnabled, telemetryEnabled);
-    grid.appendChild(newCard);
-    
-    // Clear the first card (leftmost card) after creating new card
-    if (firstCard) {
-      // Clear all input fields
-      const inputs = firstCard.querySelectorAll('.form-input');
-      inputs.forEach(input => input.value = '');
-      
-      // Uncheck all checkboxes
-      const checkboxes = firstCard.querySelectorAll('.toggle-switch-input');
-      checkboxes.forEach(checkbox => checkbox.checked = false);
-      
-      // Update card title to "New Destination"
-      updateCardTitle(firstCard, '');
     }
     
     saveDestinations();
   }
   
+  // Function to check if a card is empty (no user input)
+  function isCardEmpty(card) {
+    if (!card) return true;
+    
+    const nameInput = card.querySelector('.form-group:nth-child(1) .form-input');
+    const ipInput = card.querySelector('.form-group:nth-child(2) .form-input');
+    const portInput = card.querySelector('.form-group:nth-child(3) .form-input');
+    const destEnabledCheckbox = card.querySelector('.destination-enabled');
+    const telemetryEnabledCheckbox = card.querySelector('.telemetry-enabled');
+    
+    const name = nameInput ? (nameInput.value || '').trim() : '';
+    const ip = ipInput ? (ipInput.value || '').trim() : '';
+    const port = portInput ? (portInput.value || '').trim() : '';
+    const destEnabled = destEnabledCheckbox ? destEnabledCheckbox.checked : false;
+    const telemetryEnabled = telemetryEnabledCheckbox ? telemetryEnabledCheckbox.checked : false;
+    
+    return name === '' && ip === '' && port === '' && !destEnabled && !telemetryEnabled;
+  }
+  
   // Function to remove a destination card
   function removeDestination(button) {
     const card = button.closest('.destination-card');
-    if (card && grid.children.length > 1) {
+    if (card) {
       card.remove();
-      saveDestinations();
-    } else if (card && grid.children.length === 1) {
-      // If this is the last card, reset it instead of removing
-      const inputs = card.querySelectorAll('.form-input');
-      inputs.forEach(input => input.value = '');
-      const checkboxes = card.querySelectorAll('.toggle-switch-input');
-      checkboxes.forEach(checkbox => checkbox.checked = false);
-      updateCardTitle(card, '');
       saveDestinations();
     }
   }

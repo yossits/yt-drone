@@ -150,4 +150,42 @@ document.addEventListener("DOMContentLoaded", function () {
       sidebar.classList.toggle("open");
     });
   }
+
+  // FC Status Indicator
+  const fcStatusElement = document.getElementById("fc-status");
+  
+  // Function to update FC status display
+  function updateFCStatus(connected) {
+    if (!fcStatusElement) return;
+    
+    if (connected) {
+      fcStatusElement.textContent = "FC Connected";
+      fcStatusElement.classList.remove("fc-disconnected");
+      fcStatusElement.classList.add("fc-connected");
+    } else {
+      fcStatusElement.textContent = "FC Disconnected";
+      fcStatusElement.classList.remove("fc-connected");
+      fcStatusElement.classList.add("fc-disconnected");
+    }
+  }
+  
+  // Function to load FC status from server
+  function loadFCStatus() {
+    fetch("/flight-controller/status")
+      .then(response => response.json())
+      .then(data => {
+        updateFCStatus(data.connected || false);
+      })
+      .catch(error => {
+        console.error("Error loading FC status:", error);
+        // Default to disconnected on error
+        updateFCStatus(false);
+      });
+  }
+  
+  // Load status on page load
+  loadFCStatus();
+  
+  // Update status periodically (every 5 seconds)
+  setInterval(loadFCStatus, 5000);
 });
