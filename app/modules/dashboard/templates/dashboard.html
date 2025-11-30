@@ -30,7 +30,7 @@ endblock %} {% block content %}
             </div>
             
             <div class="status-item" style="display: flex; align-items: center; gap: var(--spacing-sm);">
-              <span class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
+              <span id="autostart-indicator" class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
               <span>Autostart</span>
             </div>
           </div>
@@ -438,6 +438,44 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // Update status periodically (every 5 seconds)
   setInterval(loadMavlinkManagerStatus, 5000);
+  
+  // Function to update Autostart status indicator
+  function updateAutostartIndicator(enabled) {
+    const indicator = document.getElementById("autostart-indicator");
+    if (!indicator) return;
+    
+    if (enabled) {
+      // Green when autostart is enabled
+      indicator.style.backgroundColor = "#28a745";
+      indicator.classList.remove("status-red");
+      indicator.classList.add("status-green");
+    } else {
+      // Red when autostart is disabled
+      indicator.style.backgroundColor = "#dc3545";
+      indicator.classList.remove("status-green");
+      indicator.classList.add("status-red");
+    }
+  }
+  
+  // Function to load Autostart status from server
+  function loadAutostartStatus() {
+    fetch("/dashboard/autostart-status")
+      .then(response => response.json())
+      .then(data => {
+        updateAutostartIndicator(data.enabled || false);
+      })
+      .catch(error => {
+        console.error("Error loading Autostart status:", error);
+        // Default to disabled on error
+        updateAutostartIndicator(false);
+      });
+  }
+  
+  // Load status on page load
+  loadAutostartStatus();
+  
+  // Update status periodically (every 5 seconds)
+  setInterval(loadAutostartStatus, 5000);
 });
 </script>
 {% endblock %}

@@ -2,8 +2,12 @@
 Logic and demo data for Dashboard module
 """
 
+import subprocess
+import logging
 from datetime import datetime
 from app.core.system import get_system_info, get_storage_info
+
+logger = logging.getLogger(__name__)
 
 
 def get_dashboard_data():
@@ -38,3 +42,36 @@ def get_dashboard_data():
         "signal_strength": 95,
         "last_update": datetime.now().strftime("%H:%M:%S"),
     }
+
+
+def check_autostart_status() -> bool:
+    """
+    Check if the systemd service is enabled for autostart
+    Returns:
+        True if service is enabled, False otherwise
+    """
+    service_name = "yt-drone.service"
+    try:
+        # Check if service is enabled using systemctl
+        result = subprocess.run(
+            ["systemctl", "is-enabled", service_name],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        # systemctl is-enabled returns "enabled" if enabled, other statuses if not
+        is_enabled = result.returncode == 0 and result.stdout.strip() == "enabled"
+        
+        logger.debug(f"Autostart status check: service={service_name}, enabled={is_enabled}")
+        return is_enabled
+        
+    except subprocess.TimeoutExpired:
+        logger.warning(f"Timeout checking autostart status for {service_name}")
+        return False
+    except FileNotFoundError:
+        logger.warning("systemctl command not found, cannot check autostart status")
+        return False
+    except Exception as e:
+        logger.error(f"Error checking autostart status: {e}", exc_info=True)
+        return False
