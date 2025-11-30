@@ -8,6 +8,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 STATUS_FILE = DATA_DIR / "flight_controller_status.json"
+SETTINGS_FILE = DATA_DIR / "flight_controller_settings.json"
 
 
 def ensure_data_dir():
@@ -44,6 +45,48 @@ def save_fc_status(connected: bool):
     try:
         with open(STATUS_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except IOError:
+        return False
+
+
+def load_fc_settings():
+    """Loads flight controller settings from JSON file"""
+    ensure_data_dir()
+    
+    if not SETTINGS_FILE.exists():
+        # Create default file if it doesn't exist
+        default_settings = {
+            "connection_type": "serial",
+            "device": "/dev/serial0",
+            "baud": 57600
+        }
+        save_fc_settings(default_settings)
+        return default_settings
+    
+    try:
+        with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return {
+                "connection_type": data.get('connection_type', 'serial'),
+                "device": data.get('device', '/dev/serial0'),
+                "baud": data.get('baud', 57600)
+            }
+    except (json.JSONDecodeError, IOError):
+        return {
+            "connection_type": "serial",
+            "device": "/dev/serial0",
+            "baud": 57600
+        }
+
+
+def save_fc_settings(settings: dict):
+    """Saves flight controller settings to JSON file"""
+    ensure_data_dir()
+    
+    try:
+        with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(settings, f, indent=2, ensure_ascii=False)
         return True
     except IOError:
         return False

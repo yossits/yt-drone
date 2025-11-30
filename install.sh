@@ -72,6 +72,16 @@ apt-get install -y git python3 python3-venv python3-pip net-tools
 
 ok "System packages installed."
 
+# ===== ADD USER TO DIALOUT GROUP =====
+step "Adding user to dialout group for serial port access..."
+if ! groups "$APP_USER" | grep -q dialout; then
+    usermod -a -G dialout "$APP_USER"
+    ok "User $APP_USER added to dialout group."
+    warn "User needs to logout and login again for group changes to take effect."
+else
+    ok "User $APP_USER is already in dialout group."
+fi
+
 # ===== 2. CLONE / UPDATE REPO =====
 step "Preparing application directory..."
 

@@ -11,7 +11,7 @@
         <!-- Connection Type -->
         <div class="form-group">
           <label class="form-label">Connection Type</label>
-          <select class="form-select">
+          <select class="form-select" id="fc-connection-type">
             <option value="serial">Serial connection</option>
             <option value="usb">USB connection</option>
           </select>
@@ -20,7 +20,7 @@
         <!-- Baud Rate -->
         <div class="form-group">
           <label class="form-label">Baud Rate</label>
-          <select class="form-select">
+          <select class="form-select" id="fc-baud-select">
             <option value="9600">9600</option>
             <option value="57600" selected>57600</option>
             <option value="115200">115200</option>
@@ -32,7 +32,7 @@
         <div class="form-group">
           <label class="form-label">FC Internal Address</label>
           <p style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 4px;">Internal address for Flight Controller communication</p>
-          <input type="text" class="form-input" value="/dev/ttyAMA0">
+          <input type="text" class="form-input" id="fc-device-input">
           <p style="font-size: 0.85em; color: var(--text-secondary); margin-top: 8px;">This is the internal address Raspberry Pi uses for communication with the Flight Controller. Only change if you know what you are doing!</p>
         </div>
       </div>
@@ -54,7 +54,33 @@
       <h3 class="card-title">Mavlink Inspector</h3>
     </div>
     <div class="card-body">
-
+      <div id="fc-status-display">
+        <p><strong>Status:</strong> <span id="fc-connection-status">Disconnected</span></p>
+      </div>
+      
+      <!-- Status Messages -->
+      <div id="fc-status-messages" style="margin-top: 1rem; display: none;">
+        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Status Messages</h4>
+        <div id="fc-status-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+      </div>
+      
+      <!-- Telemetry Messages -->
+      <div id="fc-telemetry-messages" style="margin-top: 1rem; display: none;">
+        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Telemetry Messages</h4>
+        <div id="fc-telemetry-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+      </div>
+      
+      <!-- Sensors Messages -->
+      <div id="fc-sensors-messages" style="margin-top: 1rem; display: none;">
+        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Sensors Messages</h4>
+        <div id="fc-sensors-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+      </div>
+      
+      <!-- Map Messages -->
+      <div id="fc-map-messages" style="margin-top: 1rem; display: none;">
+        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Map/GPS Messages</h4>
+        <div id="fc-map-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -75,6 +101,192 @@
 document.addEventListener("DOMContentLoaded", function() {
   const connectRestartBtn = document.getElementById("fc-connect-restart-btn");
   const disconnectBtn = document.getElementById("fc-disconnect-btn");
+  const connectionTypeSelect = document.getElementById("fc-connection-type");
+  const deviceInput = document.getElementById("fc-device-input");
+  const baudSelect = document.getElementById("fc-baud-select");
+  const statusDisplay = document.getElementById("fc-connection-status");
+  
+  // WebSocket connections
+  let statusWS = null;
+  let telemetryWS = null;
+  let sensorsWS = null;
+  let mapWS = null;
+  
+  // Display containers
+  const statusMessagesContainer = document.getElementById("fc-status-messages");
+  const statusMessagesContent = document.getElementById("fc-status-messages-content");
+  const telemetryMessagesContainer = document.getElementById("fc-telemetry-messages");
+  const telemetryMessagesContent = document.getElementById("fc-telemetry-messages-content");
+  const sensorsMessagesContainer = document.getElementById("fc-sensors-messages");
+  const sensorsMessagesContent = document.getElementById("fc-sensors-messages-content");
+  const mapMessagesContainer = document.getElementById("fc-map-messages");
+  const mapMessagesContent = document.getElementById("fc-map-messages-content");
+  
+  // Debug: Check if DOM elements exist
+  console.log("[DEBUG] DOM elements check:");
+  console.log("  statusMessagesContainer:", !!statusMessagesContainer);
+  console.log("  statusMessagesContent:", !!statusMessagesContent);
+  console.log("  telemetryMessagesContainer:", !!telemetryMessagesContainer);
+  console.log("  telemetryMessagesContent:", !!telemetryMessagesContent);
+  console.log("  sensorsMessagesContainer:", !!sensorsMessagesContainer);
+  console.log("  sensorsMessagesContent:", !!sensorsMessagesContent);
+  console.log("  mapMessagesContainer:", !!mapMessagesContainer);
+  console.log("  mapMessagesContent:", !!mapMessagesContent);
+  
+  // Function to display MAVLink data in key:value format
+  function displayMAVLinkData(topic, data) {
+    console.log(`[DEBUG] displayMAVLinkData called - topic: ${topic}, data:`, data);
+    
+    if (!data) {
+      console.warn("[DEBUG] displayMAVLinkData: data is null or undefined");
+      return;
+    }
+    
+    if (!data.type) {
+      console.warn("[DEBUG] displayMAVLinkData: data.type is missing", data);
+      return;
+    }
+    
+    let container, content;
+    switch(topic) {
+      case "status":
+        container = statusMessagesContainer;
+        content = statusMessagesContent;
+        break;
+      case "telemetry":
+        container = telemetryMessagesContainer;
+        content = telemetryMessagesContent;
+        break;
+      case "sensors":
+        container = sensorsMessagesContainer;
+        content = sensorsMessagesContent;
+        break;
+      case "map":
+        container = mapMessagesContainer;
+        content = mapMessagesContent;
+        break;
+      default:
+        console.warn(`[DEBUG] displayMAVLinkData: Unknown topic: ${topic}`);
+        return;
+    }
+    
+    if (!container) {
+      console.error(`[DEBUG] displayMAVLinkData: Container not found for topic: ${topic}`);
+      return;
+    }
+    
+    if (!content) {
+      console.error(`[DEBUG] displayMAVLinkData: Content element not found for topic: ${topic}`);
+      return;
+    }
+    
+    console.log(`[DEBUG] displayMAVLinkData: Found container and content for topic: ${topic}`);
+    
+    // Show container
+    container.style.display = "block";
+    
+    // Create HTML for key:value display
+    let html = `<div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color, #ddd);">`;
+    html += `<strong style="color: var(--primary-color, #007bff);">${data.type}</strong><br>`;
+    
+    // Display all fields as key: value
+    for (const [key, value] of Object.entries(data)) {
+      if (key === "type") continue; // Skip type as it's already shown
+      
+      let displayValue = value;
+      if (value === null || value === undefined) {
+        displayValue = "null";
+      } else if (typeof value === "object") {
+        displayValue = JSON.stringify(value);
+      } else if (typeof value === "boolean") {
+        displayValue = value ? "true" : "false";
+      } else if (typeof value === "number") {
+        displayValue = value.toString();
+      }
+      
+      html += `<span style="color: var(--text-secondary, #666);">${key}:</span> <span style="color: var(--text-primary, #000);">${displayValue}</span><br>`;
+    }
+    
+    html += `</div>`;
+    
+    // Prepend new message (most recent first)
+    content.innerHTML = html + content.innerHTML;
+    
+    console.log(`[DEBUG] displayMAVLinkData: Displayed message type: ${data.type} for topic: ${topic}`);
+    
+    // Limit to last 10 messages per topic
+    const messages = content.querySelectorAll("div");
+    if (messages.length > 10) {
+      messages[messages.length - 1].remove();
+    }
+  }
+  
+  // Load settings from server
+  async function loadSettings() {
+    try {
+      const response = await fetch("/flight-controller/settings");
+      const settings = await response.json();
+      
+      // Update form fields with loaded settings
+      if (connectionTypeSelect) {
+        connectionTypeSelect.value = settings.connection_type || "serial";
+      }
+      if (baudSelect) {
+        baudSelect.value = settings.baud || 57600;
+      }
+      updateDeviceByConnectionType();
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
+  }
+  
+  // Update device based on connection type
+  function updateDeviceByConnectionType() {
+    if (!connectionTypeSelect || !deviceInput) return;
+    
+    const connectionType = connectionTypeSelect.value;
+    if (connectionType === "serial") {
+      deviceInput.value = "/dev/serial0";
+    } else if (connectionType === "usb") {
+      deviceInput.value = "/dev/ttyACM0";
+    }
+    
+    // Save settings when changed
+    saveSettings();
+  }
+  
+  // Save settings to server
+  async function saveSettings() {
+    if (!connectionTypeSelect || !deviceInput || !baudSelect) return;
+    
+    const settings = {
+      connection_type: connectionTypeSelect.value,
+      device: deviceInput.value,
+      baud: parseInt(baudSelect.value)
+    };
+    
+    try {
+      await fetch("/flight-controller/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(settings)
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+    }
+  }
+  
+  // Listen to connection type changes
+  if (connectionTypeSelect) {
+    connectionTypeSelect.addEventListener("change", updateDeviceByConnectionType);
+  }
+  
+  // Listen to baud rate changes
+  if (baudSelect) {
+    baudSelect.addEventListener("change", saveSettings);
+  }
   
   // Function to update buttons based on FC connection status
   function updateFCButtons(connected) {
@@ -82,46 +294,359 @@ document.addEventListener("DOMContentLoaded", function() {
     
     if (connected) {
       // FC is connected
-      // Disconnect button: disabled with opacity
-      disconnectBtn.disabled = true;
-      disconnectBtn.classList.add("fc-disconnect-disabled");
-      disconnectBtn.style.opacity = "0.5";
-      disconnectBtn.style.cursor = "not-allowed";
-      
-      // Restart button: stays as "Restart"
-      connectRestartBtn.textContent = "Restart";
-    } else {
-      // FC is not connected
-      // Disconnect button: enabled, normal opacity
+      // Disconnect button: enabled
       disconnectBtn.disabled = false;
       disconnectBtn.classList.remove("fc-disconnect-disabled");
       disconnectBtn.style.opacity = "1";
       disconnectBtn.style.cursor = "pointer";
       
+      // Restart button: stays as "Restart"
+      connectRestartBtn.textContent = "Restart";
+      connectRestartBtn.disabled = false;
+    } else {
+      // FC is not connected
+      // Disconnect button: disabled
+      disconnectBtn.disabled = true;
+      disconnectBtn.classList.add("fc-disconnect-disabled");
+      disconnectBtn.style.opacity = "0.5";
+      disconnectBtn.style.cursor = "not-allowed";
+      
       // Restart button: changes to "Connect"
       connectRestartBtn.textContent = "Connect";
+      connectRestartBtn.disabled = false;
     }
   }
   
-  // Function to load FC status from server
-  function loadFCStatus() {
-    fetch("/flight-controller/status")
-      .then(response => response.json())
-      .then(data => {
-        updateFCButtons(data.connected || false);
-      })
-      .catch(error => {
-        console.error("Error loading FC status:", error);
-        // Default to disconnected on error
-        updateFCButtons(false);
-      });
+  // Function to update connection status display
+  function updateStatusDisplay(connected, message) {
+    if (statusDisplay) {
+      statusDisplay.textContent = connected ? "Connected" : "Disconnected";
+      statusDisplay.style.color = connected ? "green" : "red";
+    }
   }
   
-  // Load status on page load
+  // Function to connect WebSockets
+  function connectWebSockets() {
+    // Close existing connections
+    disconnectWebSockets();
+    
+    // Connect to status WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsBase = `${protocol}//${window.location.host}`;
+    
+    statusWS = new WebSocket(`${wsBase}/ws/fc-status`);
+    statusWS.onopen = () => {
+      console.log("FC Status WebSocket connected");
+    };
+    statusWS.onmessage = (event) => {
+      console.log("[DEBUG] Status WebSocket message received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[DEBUG] Status WebSocket parsed data:", data);
+        
+        // Handle different message types
+        if (data.type === "connected") {
+          console.log("[DEBUG] Status WebSocket - connection confirmed");
+          return;
+        }
+        
+        if (data.type === "heartbeat") {
+          console.log("[DEBUG] Status WebSocket - heartbeat received");
+          return;
+        }
+        
+        if (data.type === "data" && data.data) {
+          console.log("[DEBUG] Status WebSocket - calling displayMAVLinkData with:", data.data);
+          displayMAVLinkData("status", data.data);
+          updateStatusDisplay(true, "Connected");
+        } else {
+          console.log("[DEBUG] Status WebSocket - message type:", data.type, "has data:", !!data.data);
+        }
+      } catch (error) {
+        console.error("[DEBUG] Status WebSocket - error parsing message:", error);
+      }
+    };
+    statusWS.onerror = (error) => {
+      console.error("FC Status WebSocket error:", error);
+    };
+    statusWS.onclose = () => {
+      console.log("FC Status WebSocket closed");
+      statusWS = null;
+    };
+    
+    // Connect to telemetry WebSocket
+    telemetryWS = new WebSocket(`${wsBase}/ws/fc-telemetry`);
+    telemetryWS.onopen = () => {
+      console.log("FC Telemetry WebSocket connected");
+    };
+    telemetryWS.onmessage = (event) => {
+      console.log("[DEBUG] Telemetry WebSocket message received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[DEBUG] Telemetry WebSocket parsed data:", data);
+        
+        if (data.type === "connected") {
+          console.log("[DEBUG] Telemetry WebSocket - connection confirmed");
+          return;
+        }
+        
+        if (data.type === "heartbeat") {
+          console.log("[DEBUG] Telemetry WebSocket - heartbeat received");
+          return;
+        }
+        
+        if (data.type === "data" && data.data) {
+          console.log("[DEBUG] Telemetry WebSocket - calling displayMAVLinkData with:", data.data);
+          displayMAVLinkData("telemetry", data.data);
+        } else {
+          console.log("[DEBUG] Telemetry WebSocket - message type:", data.type, "has data:", !!data.data);
+        }
+      } catch (error) {
+        console.error("[DEBUG] Telemetry WebSocket - error parsing message:", error);
+      }
+    };
+    telemetryWS.onerror = (error) => {
+      console.error("FC Telemetry WebSocket error:", error);
+    };
+    telemetryWS.onclose = () => {
+      console.log("FC Telemetry WebSocket closed");
+      telemetryWS = null;
+    };
+    
+    // Connect to sensors WebSocket
+    sensorsWS = new WebSocket(`${wsBase}/ws/fc-sensors`);
+    sensorsWS.onopen = () => {
+      console.log("FC Sensors WebSocket connected");
+    };
+    sensorsWS.onmessage = (event) => {
+      console.log("[DEBUG] Sensors WebSocket message received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[DEBUG] Sensors WebSocket parsed data:", data);
+        if (data.type === "data" && data.data) {
+          console.log("[DEBUG] Sensors WebSocket - calling displayMAVLinkData with:", data.data);
+          displayMAVLinkData("sensors", data.data);
+        } else {
+          console.log("[DEBUG] Sensors WebSocket - message type:", data.type, "has data:", !!data.data);
+        }
+      } catch (error) {
+        console.error("[DEBUG] Sensors WebSocket - error parsing message:", error);
+      }
+    };
+    sensorsWS.onerror = (error) => {
+      console.error("FC Sensors WebSocket error:", error);
+    };
+    sensorsWS.onclose = () => {
+      console.log("FC Sensors WebSocket closed");
+      sensorsWS = null;
+    };
+    
+    // Connect to map WebSocket
+    mapWS = new WebSocket(`${wsBase}/ws/fc-map`);
+    mapWS.onopen = () => {
+      console.log("FC Map WebSocket connected");
+    };
+    mapWS.onmessage = (event) => {
+      console.log("[DEBUG] Map WebSocket message received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[DEBUG] Map WebSocket parsed data:", data);
+        
+        if (data.type === "connected") {
+          console.log("[DEBUG] Map WebSocket - connection confirmed");
+          return;
+        }
+        
+        if (data.type === "heartbeat") {
+          console.log("[DEBUG] Map WebSocket - heartbeat received");
+          return;
+        }
+        
+        if (data.type === "data" && data.data) {
+          console.log("[DEBUG] Map WebSocket - calling displayMAVLinkData with:", data.data);
+          displayMAVLinkData("map", data.data);
+        } else {
+          console.log("[DEBUG] Map WebSocket - message type:", data.type, "has data:", !!data.data);
+        }
+      } catch (error) {
+        console.error("[DEBUG] Map WebSocket - error parsing message:", error);
+      }
+    };
+    mapWS.onerror = (error) => {
+      console.error("FC Map WebSocket error:", error);
+    };
+    mapWS.onclose = () => {
+      console.log("FC Map WebSocket closed");
+      mapWS = null;
+    };
+  }
+  
+  // Function to disconnect WebSockets
+  function disconnectWebSockets() {
+    if (statusWS) {
+      statusWS.close();
+      statusWS = null;
+    }
+    if (telemetryWS) {
+      telemetryWS.close();
+      telemetryWS = null;
+    }
+    if (sensorsWS) {
+      sensorsWS.close();
+      sensorsWS = null;
+    }
+    if (mapWS) {
+      mapWS.close();
+      mapWS = null;
+    }
+    
+    // Clear all displays
+    if (statusMessagesContent) statusMessagesContent.innerHTML = "";
+    if (telemetryMessagesContent) telemetryMessagesContent.innerHTML = "";
+    if (sensorsMessagesContent) sensorsMessagesContent.innerHTML = "";
+    if (mapMessagesContent) mapMessagesContent.innerHTML = "";
+    
+    // Hide containers
+    if (statusMessagesContainer) statusMessagesContainer.style.display = "none";
+    if (telemetryMessagesContainer) telemetryMessagesContainer.style.display = "none";
+    if (sensorsMessagesContainer) sensorsMessagesContainer.style.display = "none";
+    if (mapMessagesContainer) mapMessagesContainer.style.display = "none";
+  }
+  
+  // Function to connect to FC
+  async function connectFC() {
+    try {
+      connectRestartBtn.disabled = true;
+      
+      // Load settings directly from file
+      const settingsResponse = await fetch("/flight-controller/settings");
+      if (!settingsResponse.ok) {
+        throw new Error("Failed to load settings from file");
+      }
+      
+      const settings = await settingsResponse.json();
+      const device = settings.device;
+      const baud = settings.baud;
+      
+      // Validate settings
+      if (!device || !device.trim()) {
+        alert("Invalid device path in settings file");
+        return;
+      }
+      
+      if (!baud || isNaN(baud) || baud <= 0) {
+        alert("Invalid baud rate in settings file");
+        return;
+      }
+      
+      // Connect using settings from file
+      const response = await fetch("/api/fc/connect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ device: device.trim(), baud: parseInt(baud) })
+      });
+      
+      const data = await response.json();
+      
+      if (data.connected) {
+        updateFCButtons(true);
+        updateStatusDisplay(true, "Connected successfully");
+        // Open WebSockets after successful connection
+        connectWebSockets();
+      } else {
+        updateFCButtons(false);
+        updateStatusDisplay(false, data.message || "Connection failed");
+        alert("Failed to connect: " + (data.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error connecting to FC:", error);
+      updateFCButtons(false);
+      updateStatusDisplay(false, "Connection error");
+      alert("Error connecting to FC: " + error.message);
+    } finally {
+      connectRestartBtn.disabled = false;
+    }
+  }
+  
+  // Function to disconnect from FC
+  async function disconnectFC() {
+    try {
+      disconnectBtn.disabled = true;
+      const response = await fetch("/api/fc/disconnect", {
+        method: "POST"
+      });
+      
+      const data = await response.json();
+      
+      // Close WebSockets
+      disconnectWebSockets();
+      
+      updateFCButtons(false);
+      updateStatusDisplay(false, "Disconnected");
+    } catch (error) {
+      console.error("Error disconnecting from FC:", error);
+      alert("Error disconnecting from FC: " + error.message);
+    } finally {
+      disconnectBtn.disabled = false;
+    }
+  }
+  
+  // Button event handlers
+  if (connectRestartBtn) {
+    connectRestartBtn.addEventListener("click", async () => {
+      const status = await fetch("/api/fc/status").then(r => r.json());
+      if (status.connected) {
+        // Restart: disconnect then connect
+        await disconnectFC();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await connectFC();
+      } else {
+        // Connect
+        await connectFC();
+      }
+    });
+  }
+  
+  if (disconnectBtn) {
+    disconnectBtn.addEventListener("click", disconnectFC);
+  }
+  
+  // Function to load FC status from server
+  async function loadFCStatus() {
+    try {
+      const response = await fetch("/api/fc/status");
+      const data = await response.json();
+      updateFCButtons(data.connected || false);
+      updateStatusDisplay(data.connected || false, data.connected ? "Connected" : "Disconnected");
+      
+      // If connected but WebSockets are not open, open them
+      if (data.connected && (!statusWS || statusWS.readyState !== WebSocket.OPEN)) {
+        connectWebSockets();
+      }
+      // If not connected but WebSockets are open, close them
+      if (!data.connected && (statusWS || telemetryWS || sensorsWS || mapWS)) {
+        disconnectWebSockets();
+      }
+    } catch (error) {
+      console.error("Error loading FC status:", error);
+      updateFCButtons(false);
+      updateStatusDisplay(false, "Error loading status");
+    }
+  }
+  
+  // Load settings and status on page load
+  loadSettings();
   loadFCStatus();
   
   // Update status periodically (every 5 seconds)
   setInterval(loadFCStatus, 5000);
+  
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", () => {
+    disconnectWebSockets();
+  });
 });
 </script>
 {% endblock %}

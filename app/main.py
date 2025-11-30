@@ -26,6 +26,9 @@ from app.modules.application import router as application_router
 # Import WebSocket router
 from app.core import websocket_router
 
+# Import FC API routers
+from app.api import fc_routes, ws_fc_routes
+
 # Import Monitor Manager
 from app.core.monitor_manager import monitor_manager
 from app.core.system import get_static_info, get_slow_dynamic_info, get_fast_dynamic_info
@@ -53,6 +56,10 @@ app.include_router(application_router)
 
 # Include WebSocket router
 app.include_router(websocket_router.router)
+
+# Include FC API routers
+app.include_router(fc_routes.router)
+app.include_router(ws_fc_routes.router)
 
 
 # Root redirect to dashboard

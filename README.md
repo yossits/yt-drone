@@ -138,7 +138,23 @@ sudo nano /boot/cmdline.txt
 sudo reboot
 ```
 
-#### 5. Create launch file
+#### 5. Add user to dialout group
+
+Add the user to the `dialout` group to allow access to serial ports:
+
+```bash
+sudo usermod -a -G dialout $USER
+```
+
+**Important:** After adding the user to the group, **logout and login again** (or run `newgrp dialout`) for the changes to take effect.
+
+Verify the user is in the group:
+```bash
+groups
+```
+You should see `dialout` in the list.
+
+#### 6. Create launch file
 
 Create `run_app.sh` file:
 
@@ -162,7 +178,7 @@ Save the file and make it executable:
 chmod +x /home/pi/yt-drone/run_app.sh
 ```
 
-#### 6. Create Systemd service
+#### 7. Create Systemd service
 
 Create service file:
 
@@ -193,7 +209,7 @@ WantedBy=multi-user.target
 
 Save the file.
 
-#### 7. Start service
+#### 8. Start service
 
 ```bash
 sudo systemctl daemon-reload
@@ -269,13 +285,13 @@ sudo systemctl status yt-drone.service
 
 ```bash
 # Create virtual environment
-python -m venv .venv
+python -m venv venv
 
 # Activate environment (Windows)
 venv\Scripts\activate
 
 # Activate environment (Linux/Mac)
-source .venv/bin/activate
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
