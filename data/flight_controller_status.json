@@ -1,3 +1,5 @@
 {
-    "connected": false
+  "connected": true,
+  "device": "/dev/serial0",
+  "baud": 115200
 }

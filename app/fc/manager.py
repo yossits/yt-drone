@@ -5,8 +5,11 @@ FCConnectionManager - Manages persistent MAVLink connection to Flight Controller
 import asyncio
 import logging
 import serial
+import time
 from typing import Dict, List, Optional, Any
 from pymavlink import mavutil
+
+from app.fc.decoders import decode_mavlink_message
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ class FCConnectionManager:
         self._device: Optional[str] = None
         self._baud: Optional[int] = None
         self._running = False
+        self._last_heartbeat_time: Optional[float] = None
     
     async def connect(self, device: str, baud: int) -> bool:
         """
@@ -69,13 +73,34 @@ class FCConnectionManager:
                 else:
                     # Fallback: create our own serial connection for status checking
                     logger.warning("MAVLink port.ser not found, creating fallback serial connection")
-                    self._connection = serial.Serial(
-                        device,
-                        baud,
-                        timeout=1,
-                        write_timeout=1
-                    )
-                    logger.info(f"Fallback serial connection created (port: {self._connection.port})")
+                    logger.warning(f"Attempting to create serial connection to {device} at {baud} baud")
+                    try:
+                        self._connection = serial.Serial(
+                            device,
+                            baud,
+                            timeout=1,
+                            write_timeout=1
+                        )
+                        logger.info(f"Fallback serial connection created (port: {self._connection.port}, is_open: {self._connection.is_open})")
+                    except Exception as e:
+                        logger.error(f"Failed to create fallback serial connection: {e}", exc_info=True)
+                        raise
+                
+                # Verify serial connection is actually open
+                if self._connection is None:
+                    logger.error("Serial connection is None after initialization")
+                    raise Exception("Serial connection is None after initialization")
+                
+                is_open = self._connection.is_open if hasattr(self._connection, 'is_open') else False
+                port_name = getattr(self._connection, 'port', 'unknown')
+                
+                logger.info(f"Checking serial connection: port={port_name}, is_open={is_open}, device={device}, baud={baud}")
+                
+                if not is_open:
+                    logger.error(f"Serial connection is not open! Port: {port_name}")
+                    raise Exception(f"Serial connection failed to open on {port_name}")
+                
+                logger.info(f"Serial connection verified: port={port_name}, is_open={is_open}, device={device}, baud={baud}")
                 
                 self._device = device
                 self._baud = baud
@@ -84,8 +109,12 @@ class FCConnectionManager:
                 
                 # Start read loop
                 logger.info("Starting MAVLink read loop task...")
-                self._read_task = asyncio.create_task(self._read_loop())
-                logger.info("MAVLink read loop task started")
+                try:
+                    self._read_task = asyncio.create_task(self._read_loop())
+                    logger.info("MAVLink read loop task started")
+                except Exception as e:
+                    logger.error(f"Failed to create read loop task: {e}", exc_info=True)
+                    raise
                 
                 logger.info(f"Successfully connected to Flight Controller at {device} @ {baud} baud")
                 return True
@@ -181,6 +210,7 @@ class FCConnectionManager:
         logger.info("Starting MAVLink read loop")
         message_count = 0
         first_message = True
+        heartbeat_count = 0
         
         while self._running:
             try:
@@ -196,34 +226,53 @@ class FCConnectionManager:
                         logger.info(f"First MAVLink message received: {msg_type}")
                         first_message = False
                     
+                    # Special logging for HEARTBEAT messages
+                    if msg_type == "HEARTBEAT":
+                        heartbeat_count += 1
+                        current_time = time.time()
+                        if self._last_heartbeat_time is not None:
+                            time_since_last = current_time - self._last_heartbeat_time
+                            logger.info(f"HEARTBEAT #{heartbeat_count} received (time since last: {time_since_last:.2f}s)")
+                        else:
+                            logger.info(f"HEARTBEAT #{heartbeat_count} received (first heartbeat)")
+                        self._last_heartbeat_time = current_time
+                    
                     # Categorize message
                     topic = self._categorize_message(msg)
                     
                     # Convert message to dict for JSON serialization
                     msg_dict = self._message_to_dict(msg)
+                    # Preserve the message type name before it gets overridden
+                    msg_dict["message_type"] = msg_type
+                    
+                    # Decode message to add human-readable fields
+                    decoded_dict = decode_mavlink_message(msg_dict)
+                    
+                    # Log all message data to console (for debugging)
+                    logger.debug(f"MAVLink message received - Type: {msg_type}, Type ID: {decoded_dict.get('type_id', 'N/A')}, Topic: {topic}, Data: {decoded_dict}")
                     
                     # Publish to subscribers
-                    await self._publish(topic, msg_dict)
+                    await self._publish(topic, decoded_dict)
                     
                     # Also publish to "raw" topic for all messages
                     if topic != "raw":
-                        await self._publish("raw", msg_dict)
+                        await self._publish("raw", decoded_dict)
                     
                     # Log every 100 messages to avoid spam
                     if message_count % 100 == 0:
-                        logger.info(f"Processed {message_count} MAVLink messages")
+                        logger.info(f"Processed {message_count} MAVLink messages (HEARTBEAT count: {heartbeat_count})")
                 
                 # Small sleep to prevent CPU spinning
                 await asyncio.sleep(0.01)
                 
             except asyncio.CancelledError:
-                logger.info(f"Read loop cancelled after processing {message_count} messages")
+                logger.info(f"Read loop cancelled after processing {message_count} messages (HEARTBEAT count: {heartbeat_count})")
                 break
             except Exception as e:
                 logger.error(f"Error in read loop: {e}", exc_info=True)
                 await asyncio.sleep(0.1)
         
-        logger.info(f"MAVLink read loop stopped. Total messages processed: {message_count}")
+        logger.info(f"MAVLink read loop stopped. Total messages processed: {message_count}, HEARTBEAT messages: {heartbeat_count}")
     
     def _categorize_message(self, msg) -> str:
         """
@@ -262,12 +311,48 @@ class FCConnectionManager:
         Returns:
             Dictionary representation of the message
         """
+        # Get message type (name) and ID
+        msg_type = msg.get_type()
+        msg_id = None
+        
+        # Try to get message ID using different methods
+        try:
+            if hasattr(msg, 'get_msgId'):
+                msg_id = msg.get_msgId()
+            elif hasattr(msg, '_id'):
+                msg_id = msg._id
+            elif hasattr(msg, 'id'):
+                msg_id = msg.id
+            elif hasattr(msg, 'MSG_ID'):
+                msg_id = msg.MSG_ID
+        except:
+            msg_id = None
+        
+        # For HEARTBEAT messages, preserve the numeric 'type' field (MAV_TYPE)
+        # before it gets overridden by the message type name
+        mav_type_value = None
+        if msg_type == "HEARTBEAT":
+            if hasattr(msg, 'type'):
+                mav_type_value = getattr(msg, 'type', None)
+                logger.debug(f"HEARTBEAT detected, mav_type_value={mav_type_value}")
+            else:
+                logger.warning("HEARTBEAT message has no 'type' attribute")
+        
         msg_dict = {
-            "type": msg.get_type(),
+            "type": msg_type,  # Message type name (e.g., "HEARTBEAT")
+            "type_id": msg_id,
             "timestamp": getattr(msg, "_timestamp", None),
         }
         
+        # Preserve MAV_TYPE for HEARTBEAT if we captured it
+        if mav_type_value is not None:
+            msg_dict["mav_type"] = mav_type_value
+        elif msg_type == "HEARTBEAT":
+            logger.warning(f"HEARTBEAT but mav_type_value is None! msg fields: {msg.get_fieldnames() if hasattr(msg, 'get_fieldnames') else 'N/A'}")
+        
         # Add all message fields
+        # Note: For HEARTBEAT, the numeric 'type' field will override "type" above,
+        # but we've already preserved it as "mav_type" for decoding
         for field in msg.get_fieldnames():
             value = getattr(msg, field, None)
             # Convert bytes to list for JSON serialization
@@ -285,15 +370,20 @@ class FCConnectionManager:
             message: Message data (dict)
         """
         if topic not in self._subscribers:
+            logger.debug(f"No subscribers for topic: {topic}")
             return
         
         # Copy list to avoid modification during iteration
         subscribers = self._subscribers[topic].copy()
         
+        msg_type = message.get('type', 'unknown')
+        logger.debug(f"Publishing message type {msg_type} to topic {topic} ({len(subscribers)} subscribers)")
+        
         for queue in subscribers:
             try:
                 # Non-blocking put
                 queue.put_nowait(message)
+                logger.debug(f"Message published to queue for topic {topic}")
             except asyncio.QueueFull:
                 logger.warning(f"Queue full for topic {topic}, dropping message")
             except Exception as e:
@@ -363,17 +453,55 @@ class FCConnectionManager:
         
         self._device = None
         self._baud = None
+        self._last_heartbeat_time = None
+    
+    def has_active_heartbeat(self, timeout_seconds: float = 10.0) -> bool:
+        """
+        Check if there is an active heartbeat (received within timeout)
+        Args:
+            timeout_seconds: Maximum seconds since last heartbeat to consider it active
+        Returns:
+            True if heartbeat is active, False otherwise
+        """
+        if self._last_heartbeat_time is None:
+            return False
+        
+        current_time = time.time()
+        time_since_last = current_time - self._last_heartbeat_time
+        return time_since_last <= timeout_seconds
+    
+    def get_heartbeat_status(self) -> Dict[str, Any]:
+        """
+        Get heartbeat status information
+        Returns:
+            Dictionary with heartbeat status and time since last heartbeat
+        """
+        if self._last_heartbeat_time is None:
+            return {
+                "active": False,
+                "time_since_last": None
+            }
+        
+        current_time = time.time()
+        time_since_last = current_time - self._last_heartbeat_time
+        
+        return {
+            "active": time_since_last <= 10.0,
+            "time_since_last": time_since_last
+        }
     
     def get_status(self) -> Dict[str, Any]:
         """
         Get connection status
         Returns:
-            Dictionary with connection status, device, and baud
+            Dictionary with connection status, device, baud, and heartbeat status
         """
+        heartbeat_status = self.get_heartbeat_status()
         return {
             "connected": self.is_connected(),
             "device": self._device,
-            "baud": self._baud
+            "baud": self._baud,
+            "heartbeat_active": heartbeat_status["active"]
         }
 
 

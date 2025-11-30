@@ -155,13 +155,17 @@ document.addEventListener("DOMContentLoaded", function () {
   const fcStatusElement = document.getElementById("fc-status");
   
   // Function to update FC status display
-  function updateFCStatus(connected) {
+  // Shows green only if there is an active heartbeat, not just if connected
+  function updateFCStatus(connected, heartbeatActive) {
     if (!fcStatusElement) return;
     
     const iconElement = fcStatusElement.querySelector(".fc-status-icon");
     const textElement = fcStatusElement.querySelector(".fc-status-text");
     
-    if (connected) {
+    // Show green only if connected AND has active heartbeat
+    const isActive = connected && heartbeatActive;
+    
+    if (isActive) {
       if (iconElement) {
         iconElement.src = "/static/images/icons/fc-connected.svg";
       }
@@ -187,12 +191,14 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch("/flight-controller/status")
       .then(response => response.json())
       .then(data => {
-        updateFCStatus(data.connected || false);
+        const connected = data.connected || false;
+        const heartbeatActive = data.heartbeat_active || false;
+        updateFCStatus(connected, heartbeatActive);
       })
       .catch(error => {
         console.error("Error loading FC status:", error);
         // Default to disconnected on error
-        updateFCStatus(false);
+        updateFCStatus(false, false);
       });
   }
   

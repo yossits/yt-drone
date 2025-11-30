@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from app.core.templates import templates
 from app.modules.flight_controller import services
+from app.fc.manager import fc_connection_manager
 
 router = APIRouter(prefix="/flight-controller", tags=["flight-controller"])
 
@@ -39,8 +40,17 @@ async def flight_controller_page(request: Request):
 @router.get("/status")
 async def get_fc_status():
     """Get flight controller connection status"""
-    status = services.load_fc_status()
-    return JSONResponse(status)
+    # Get saved status from file
+    saved_status = services.load_fc_status()
+    # Get real-time status from connection manager (including heartbeat)
+    real_status = fc_connection_manager.get_status()
+    # Combine both - use saved status for persistence, but add heartbeat info
+    return JSONResponse({
+        "connected": saved_status.get("connected", False),
+        "device": saved_status.get("device"),
+        "baud": saved_status.get("baud"),
+        "heartbeat_active": real_status.get("heartbeat_active", False)
+    })
 
 
 @router.post("/status")

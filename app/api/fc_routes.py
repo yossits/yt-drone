@@ -9,6 +9,7 @@ import logging
 import serial
 
 from app.fc.manager import fc_connection_manager
+from app.modules.flight_controller import services
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class StatusResponse(BaseModel):
     connected: bool
     device: Optional[str] = None
     baud: Optional[int] = None
+    heartbeat_active: Optional[bool] = None
 
 
 @router.post("/connect", response_model=ConnectResponse)
@@ -93,6 +95,8 @@ async def connect_fc(request: ConnectRequest):
         if success:
             status = fc_connection_manager.get_status()
             logger.info(f"FC connection established: {request.device} @ {request.baud}")
+            # Save connection state to disk for persistence
+            services.save_fc_status(True, status["device"], status["baud"])
             return ConnectResponse(
                 status="success",
                 connected=True,
@@ -128,6 +132,8 @@ async def disconnect_fc():
     try:
         await fc_connection_manager.disconnect()
         logger.info("FC disconnected")
+        # Save disconnected state to disk for persistence
+        services.save_fc_status(False, None, None)
         return DisconnectResponse(
             status="success",
             connected=False,
@@ -153,7 +159,8 @@ async def get_fc_status():
         return StatusResponse(
             connected=status["connected"],
             device=status["device"],
-            baud=status["baud"]
+            baud=status["baud"],
+            heartbeat_active=status.get("heartbeat_active", False)
         )
     except Exception as e:
         logger.error(f"Error getting FC status: {e}")

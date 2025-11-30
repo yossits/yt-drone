@@ -61,25 +61,25 @@
       <!-- Status Messages -->
       <div id="fc-status-messages" style="margin-top: 1rem; display: none;">
         <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Status Messages</h4>
-        <div id="fc-status-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        <div id="fc-status-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
       </div>
       
       <!-- Telemetry Messages -->
       <div id="fc-telemetry-messages" style="margin-top: 1rem; display: none;">
         <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Telemetry Messages</h4>
-        <div id="fc-telemetry-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        <div id="fc-telemetry-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
       </div>
       
       <!-- Sensors Messages -->
       <div id="fc-sensors-messages" style="margin-top: 1rem; display: none;">
         <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Sensors Messages</h4>
-        <div id="fc-sensors-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        <div id="fc-sensors-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
       </div>
       
       <!-- Map Messages -->
       <div id="fc-map-messages" style="margin-top: 1rem; display: none;">
         <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Map/GPS Messages</h4>
-        <div id="fc-map-messages-content" style="background: var(--bg-secondary, #f5f5f5); padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        <div id="fc-map-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
       </div>
     </div>
   </div>
@@ -122,30 +122,62 @@ document.addEventListener("DOMContentLoaded", function() {
   const mapMessagesContainer = document.getElementById("fc-map-messages");
   const mapMessagesContent = document.getElementById("fc-map-messages-content");
   
-  // Debug: Check if DOM elements exist
-  console.log("[DEBUG] DOM elements check:");
-  console.log("  statusMessagesContainer:", !!statusMessagesContainer);
-  console.log("  statusMessagesContent:", !!statusMessagesContent);
-  console.log("  telemetryMessagesContainer:", !!telemetryMessagesContainer);
-  console.log("  telemetryMessagesContent:", !!telemetryMessagesContent);
-  console.log("  sensorsMessagesContainer:", !!sensorsMessagesContainer);
-  console.log("  sensorsMessagesContent:", !!sensorsMessagesContent);
-  console.log("  mapMessagesContainer:", !!mapMessagesContainer);
-  console.log("  mapMessagesContent:", !!mapMessagesContent);
-  
   // Function to display MAVLink data in key:value format
+  // MAVLink message type mapping (number to name)
+  const mavlinkMessageTypes = {
+    0: "HEARTBEAT", 1: "SYS_STATUS", 2: "SYSTEM_TIME", 3: "PING", 4: "CHANGE_OPERATOR_CONTROL",
+    5: "CHANGE_OPERATOR_CONTROL_ACK", 6: "AUTH_KEY", 7: "SET_MODE", 11: "PARAM_REQUEST_READ",
+    20: "PARAM_VALUE", 21: "PARAM_SET", 22: "GPS_RAW_INT", 24: "GPS_STATUS", 25: "SCALED_IMU",
+    26: "RAW_IMU", 27: "RAW_PRESSURE", 28: "SCALED_PRESSURE", 29: "ATTITUDE", 30: "ATTITUDE_QUATERNION",
+    31: "LOCAL_POSITION_NED", 32: "GLOBAL_POSITION_INT", 33: "RC_CHANNELS_SCALED", 34: "RC_CHANNELS_RAW",
+    35: "SERVO_OUTPUT_RAW", 36: "MISSION_REQUEST_PARTIAL_LIST", 37: "MISSION_WRITE_PARTIAL_LIST",
+    38: "MISSION_ITEM", 39: "MISSION_REQUEST", 40: "MISSION_SET_CURRENT", 41: "MISSION_CURRENT",
+    42: "MISSION_REQUEST_LIST", 43: "MISSION_COUNT", 44: "MISSION_CLEAR_ALL", 45: "MISSION_ITEM_REACHED",
+    46: "MISSION_ACK", 47: "SET_GPS_GLOBAL_ORIGIN", 48: "GPS_GLOBAL_ORIGIN", 49: "PARAM_MAP_RC",
+    50: "SAFETY_SET_ALLOWED_AREA", 51: "SAFETY_ALLOWED_AREA", 52: "ATTITUDE_QUATERNION_COV",
+    54: "NAV_CONTROLLER_OUTPUT", 55: "GLOBAL_POSITION_INT_COV", 61: "LOCAL_POSITION_NED_COV",
+    62: "RC_CHANNELS", 63: "REQUEST_DATA_STREAM", 64: "DATA_STREAM", 65: "MANUAL_CONTROL",
+    66: "RC_CHANNELS_OVERRIDE", 67: "MISSION_ITEM_INT", 69: "VFR_HUD", 70: "COMMAND_INT",
+    73: "COMMAND_LONG", 74: "COMMAND_ACK", 75: "MANUAL_SETPOINT", 76: "SET_ATTITUDE_TARGET",
+    77: "ATTITUDE_TARGET", 80: "SET_POSITION_TARGET_LOCAL_NED", 81: "POSITION_TARGET_LOCAL_NED",
+    82: "SET_POSITION_TARGET_GLOBAL_INT", 83: "POSITION_TARGET_GLOBAL_INT", 84: "LOCAL_POSITION_NED_SYSTEM_GLOBAL_OFFSET",
+    85: "HIL_STATE", 86: "HIL_CONTROLS", 87: "HIL_RC_INPUTS_RAW", 89: "OPTICAL_FLOW", 90: "GLOBAL_VISION_POSITION_ESTIMATE",
+    91: "VISION_POSITION_ESTIMATE", 92: "VISION_SPEED_ESTIMATE", 93: "VICON_POSITION_ESTIMATE",
+    100: "SCALED_IMU2", 101: "LOG_REQUEST_LIST", 102: "LOG_ENTRY", 103: "LOG_REQUEST_DATA",
+    104: "LOG_DATA", 105: "LOG_ERASE", 106: "LOG_REQUEST_END", 107: "GPS_INJECT_DATA",
+    108: "GPS2_RAW", 109: "POWER_STATUS", 110: "SERIAL_CONTROL", 111: "GPS_RTK", 112: "GPS2_RTK",
+    113: "SCALED_IMU3", 114: "DATA_TRANSMISSION_HANDSHAKE", 115: "ENCAPSULATED_DATA", 116: "DISTANCE_SENSOR",
+    117: "TERRAIN_REQUEST", 118: "TERRAIN_DATA", 119: "TERRAIN_CHECK", 120: "TERRAIN_REPORT",
+    121: "BATTERY_STATUS", 122: "AUTOPILOT_VERSION", 123: "LANDING_TARGET", 124: "FENCE_STATUS",
+    125: "MAG_CAL_REPORT", 126: "EFI_STATUS", 127: "ESTIMATOR_STATUS", 128: "WIND_COV",
+    129: "GPS_INPUT", 130: "GPS_RTCM_DATA", 131: "HIGH_LATENCY", 132: "HIGH_LATENCY2",
+    133: "VIBRATION", 134: "HOME_POSITION", 135: "SET_HOME_POSITION", 136: "MESSAGE_INTERVAL",
+    137: "EXTENDED_SYS_STATE", 138: "ADSB_VEHICLE", 139: "COLLISION", 140: "V2_EXTENSION",
+    141: "MEMORY_VECT", 142: "DEBUG_VECT", 143: "NAMED_VALUE_FLOAT", 144: "NAMED_VALUE_INT",
+    145: "STATUSTEXT", 146: "DEBUG", 147: "SETUP_SIGNING", 148: "BUTTON_CHANGE", 149: "PLAY_TUNE",
+    150: "CAMERA_INFORMATION", 151: "CAMERA_SETTINGS", 152: "STORAGE_INFORMATION", 153: "CAMERA_CAPTURE_STATUS",
+    154: "CAMERA_IMAGE_CAPTURED", 155: "FLIGHT_INFORMATION", 156: "MOUNT_ORIENTATION", 157: "LOGGING_DATA",
+    158: "LOGGING_DATA_ACKED", 159: "LOGGING_ACK", 160: "VIDEO_STREAM_INFORMATION", 161: "VIDEO_STREAM_STATUS",
+    162: "WIFI_CONFIG_AP", 163: "PROTOCOL_VERSION", 164: "UAVCAN_NODE_STATUS", 165: "UAVCAN_NODE_INFO",
+    166: "PARAM_EXT_REQUEST_READ", 167: "PARAM_EXT_REQUEST_LIST", 168: "PARAM_EXT_VALUE", 169: "PARAM_EXT_SET",
+    170: "PARAM_EXT_ACK", 171: "OBSTACLE_DISTANCE", 172: "ODOMETRY", 173: "TRAJECTORY_REPRESENTATION_BEZIER",
+    174: "TRAJECTORY_REPRESENTATION_WAYPOINTS", 175: "CELLULAR_STATUS", 176: "ISBD_LINK_STATUS",
+    177: "UTM_GLOBAL_POSITION", 178: "DEBUG_FLOAT_ARRAY", 179: "ORBIT_EXECUTION_STATUS",
+    180: "STATUSTEXT_LONG", 181: "SMART_BATTERY_INFO", 182: "SMART_BATTERY_STATUS", 183: "ACTUATOR_OUTPUT_STATUS",
+    184: "TIME_ESTIMATE_TO_TARGET", 185: "TUNNEL", 186: "ONBOARD_COMPUTER_STATUS", 187: "COMPONENT_INFORMATION",
+    188: "PLAY_TUNE_V2", 189: "WHEEL_DISTANCE", 190: "WINCH_STATUS", 191: "OPEN_DRONE_ID_BASIC_ID",
+    192: "OPEN_DRONE_ID_LOCATION", 193: "OPEN_DRONE_ID_AUTHENTICATION", 194: "OPEN_DRONE_ID_SELF_ID",
+    195: "OPEN_DRONE_ID_SYSTEM", 196: "OPEN_DRONE_ID_OPERATOR_ID", 197: "OPEN_DRONE_ID_MESSAGE_PACK",
+    298: "TIMESYNC"
+  };
+
   function displayMAVLinkData(topic, data) {
-    console.log(`[DEBUG] displayMAVLinkData called - topic: ${topic}, data:`, data);
-    
-    if (!data) {
-      console.warn("[DEBUG] displayMAVLinkData: data is null or undefined");
+    if (!data || !data.type) {
       return;
     }
     
-    if (!data.type) {
-      console.warn("[DEBUG] displayMAVLinkData: data.type is missing", data);
-      return;
-    }
+    // Log all data to console
+    console.log(`[MAVLink] Topic: ${topic}, Message:`, data);
     
     let container, content;
     switch(topic) {
@@ -166,28 +198,44 @@ document.addEventListener("DOMContentLoaded", function() {
         content = mapMessagesContent;
         break;
       default:
-        console.warn(`[DEBUG] displayMAVLinkData: Unknown topic: ${topic}`);
         return;
     }
     
-    if (!container) {
-      console.error(`[DEBUG] displayMAVLinkData: Container not found for topic: ${topic}`);
+    if (!container || !content) {
       return;
     }
-    
-    if (!content) {
-      console.error(`[DEBUG] displayMAVLinkData: Content element not found for topic: ${topic}`);
-      return;
-    }
-    
-    console.log(`[DEBUG] displayMAVLinkData: Found container and content for topic: ${topic}`);
     
     // Show container
     container.style.display = "block";
     
-    // Create HTML for key:value display
-    let html = `<div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color, #ddd);">`;
-    html += `<strong style="color: var(--primary-color, #007bff);">${data.type}</strong><br>`;
+    // Get message name (convert number to name if needed)
+    // Priority: 1. message_type (preserved name), 2. type_id (message ID), 3. type (may be MAV_TYPE)
+    let messageName = null;
+    
+    // First priority: use message_type if available (preserved before override)
+    if (data.message_type) {
+      messageName = data.message_type;
+    }
+    // Second priority: use type_id with mapping
+    else if (data.type_id !== undefined && mavlinkMessageTypes[data.type_id]) {
+      messageName = mavlinkMessageTypes[data.type_id];
+    }
+    // Third priority: if type is a string, use it as is
+    else if (typeof data.type === "string") {
+      messageName = data.type;
+    }
+    // Last resort: if type is a number, use mapping (but this might be MAV_TYPE, not message type)
+    else if (typeof data.type === "number" && mavlinkMessageTypes[data.type]) {
+      messageName = mavlinkMessageTypes[data.type];
+    }
+    // Fallback
+    else {
+      messageName = data.type || "UNKNOWN";
+    }
+    
+    // Create HTML for key:value display with white text on black background
+    let html = `<div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #333;">`;
+    html += `<strong style="color: #00ff00;">${messageName}</strong><br>`;
     
     // Display all fields as key: value
     for (const [key, value] of Object.entries(data)) {
@@ -204,15 +252,13 @@ document.addEventListener("DOMContentLoaded", function() {
         displayValue = value.toString();
       }
       
-      html += `<span style="color: var(--text-secondary, #666);">${key}:</span> <span style="color: var(--text-primary, #000);">${displayValue}</span><br>`;
+      html += `<span style="color: #888;">${key}:</span> <span style="color: #ffffff;">${displayValue}</span><br>`;
     }
     
     html += `</div>`;
     
     // Prepend new message (most recent first)
     content.innerHTML = html + content.innerHTML;
-    
-    console.log(`[DEBUG] displayMAVLinkData: Displayed message type: ${data.type} for topic: ${topic}`);
     
     // Limit to last 10 messages per topic
     const messages = content.querySelectorAll("div");
@@ -335,148 +381,94 @@ document.addEventListener("DOMContentLoaded", function() {
     const wsBase = `${protocol}//${window.location.host}`;
     
     statusWS = new WebSocket(`${wsBase}/ws/fc-status`);
-    statusWS.onopen = () => {
-      console.log("FC Status WebSocket connected");
-    };
     statusWS.onmessage = (event) => {
-      console.log("[DEBUG] Status WebSocket message received:", event.data);
       try {
         const data = JSON.parse(event.data);
-        console.log("[DEBUG] Status WebSocket parsed data:", data);
         
         // Handle different message types
-        if (data.type === "connected") {
-          console.log("[DEBUG] Status WebSocket - connection confirmed");
-          return;
-        }
-        
-        if (data.type === "heartbeat") {
-          console.log("[DEBUG] Status WebSocket - heartbeat received");
+        if (data.type === "connected" || data.type === "heartbeat") {
           return;
         }
         
         if (data.type === "data" && data.data) {
-          console.log("[DEBUG] Status WebSocket - calling displayMAVLinkData with:", data.data);
           displayMAVLinkData("status", data.data);
           updateStatusDisplay(true, "Connected");
-        } else {
-          console.log("[DEBUG] Status WebSocket - message type:", data.type, "has data:", !!data.data);
         }
       } catch (error) {
-        console.error("[DEBUG] Status WebSocket - error parsing message:", error);
+        console.error("FC Status WebSocket - error parsing message:", error);
       }
     };
     statusWS.onerror = (error) => {
       console.error("FC Status WebSocket error:", error);
     };
     statusWS.onclose = () => {
-      console.log("FC Status WebSocket closed");
       statusWS = null;
     };
     
     // Connect to telemetry WebSocket
     telemetryWS = new WebSocket(`${wsBase}/ws/fc-telemetry`);
-    telemetryWS.onopen = () => {
-      console.log("FC Telemetry WebSocket connected");
-    };
     telemetryWS.onmessage = (event) => {
-      console.log("[DEBUG] Telemetry WebSocket message received:", event.data);
       try {
         const data = JSON.parse(event.data);
-        console.log("[DEBUG] Telemetry WebSocket parsed data:", data);
         
-        if (data.type === "connected") {
-          console.log("[DEBUG] Telemetry WebSocket - connection confirmed");
-          return;
-        }
-        
-        if (data.type === "heartbeat") {
-          console.log("[DEBUG] Telemetry WebSocket - heartbeat received");
+        if (data.type === "connected" || data.type === "heartbeat") {
           return;
         }
         
         if (data.type === "data" && data.data) {
-          console.log("[DEBUG] Telemetry WebSocket - calling displayMAVLinkData with:", data.data);
           displayMAVLinkData("telemetry", data.data);
-        } else {
-          console.log("[DEBUG] Telemetry WebSocket - message type:", data.type, "has data:", !!data.data);
         }
       } catch (error) {
-        console.error("[DEBUG] Telemetry WebSocket - error parsing message:", error);
+        console.error("FC Telemetry WebSocket - error parsing message:", error);
       }
     };
     telemetryWS.onerror = (error) => {
       console.error("FC Telemetry WebSocket error:", error);
     };
     telemetryWS.onclose = () => {
-      console.log("FC Telemetry WebSocket closed");
       telemetryWS = null;
     };
     
     // Connect to sensors WebSocket
     sensorsWS = new WebSocket(`${wsBase}/ws/fc-sensors`);
-    sensorsWS.onopen = () => {
-      console.log("FC Sensors WebSocket connected");
-    };
     sensorsWS.onmessage = (event) => {
-      console.log("[DEBUG] Sensors WebSocket message received:", event.data);
       try {
         const data = JSON.parse(event.data);
-        console.log("[DEBUG] Sensors WebSocket parsed data:", data);
         if (data.type === "data" && data.data) {
-          console.log("[DEBUG] Sensors WebSocket - calling displayMAVLinkData with:", data.data);
           displayMAVLinkData("sensors", data.data);
-        } else {
-          console.log("[DEBUG] Sensors WebSocket - message type:", data.type, "has data:", !!data.data);
         }
       } catch (error) {
-        console.error("[DEBUG] Sensors WebSocket - error parsing message:", error);
+        console.error("FC Sensors WebSocket - error parsing message:", error);
       }
     };
     sensorsWS.onerror = (error) => {
       console.error("FC Sensors WebSocket error:", error);
     };
     sensorsWS.onclose = () => {
-      console.log("FC Sensors WebSocket closed");
       sensorsWS = null;
     };
     
     // Connect to map WebSocket
     mapWS = new WebSocket(`${wsBase}/ws/fc-map`);
-    mapWS.onopen = () => {
-      console.log("FC Map WebSocket connected");
-    };
     mapWS.onmessage = (event) => {
-      console.log("[DEBUG] Map WebSocket message received:", event.data);
       try {
         const data = JSON.parse(event.data);
-        console.log("[DEBUG] Map WebSocket parsed data:", data);
         
-        if (data.type === "connected") {
-          console.log("[DEBUG] Map WebSocket - connection confirmed");
-          return;
-        }
-        
-        if (data.type === "heartbeat") {
-          console.log("[DEBUG] Map WebSocket - heartbeat received");
+        if (data.type === "connected" || data.type === "heartbeat") {
           return;
         }
         
         if (data.type === "data" && data.data) {
-          console.log("[DEBUG] Map WebSocket - calling displayMAVLinkData with:", data.data);
           displayMAVLinkData("map", data.data);
-        } else {
-          console.log("[DEBUG] Map WebSocket - message type:", data.type, "has data:", !!data.data);
         }
       } catch (error) {
-        console.error("[DEBUG] Map WebSocket - error parsing message:", error);
+        console.error("FC Map WebSocket - error parsing message:", error);
       }
     };
     mapWS.onerror = (error) => {
       console.error("FC Map WebSocket error:", error);
     };
     mapWS.onclose = () => {
-      console.log("FC Map WebSocket closed");
       mapWS = null;
     };
   }

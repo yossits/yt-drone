@@ -22,24 +22,30 @@ def load_fc_status():
     
     if not STATUS_FILE.exists():
         # Create default file if it doesn't exist
-        default_status = {"connected": False}
-        save_fc_status(default_status["connected"])
+        default_status = {"connected": False, "device": None, "baud": None}
+        save_fc_status(False, None, None)
         return default_status
     
     try:
         with open(STATUS_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            return {"connected": data.get('connected', False)}
+            return {
+                "connected": data.get('connected', False),
+                "device": data.get('device', None),
+                "baud": data.get('baud', None)
+            }
     except (json.JSONDecodeError, IOError):
-        return {"connected": False}
+        return {"connected": False, "device": None, "baud": None}
 
 
-def save_fc_status(connected: bool):
+def save_fc_status(connected: bool, device: str = None, baud: int = None):
     """Saves flight controller status to JSON file"""
     ensure_data_dir()
     
     data = {
-        "connected": connected
+        "connected": connected,
+        "device": device,
+        "baud": baud
     }
     
     try:

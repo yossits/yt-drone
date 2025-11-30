@@ -20,7 +20,7 @@ endblock %} {% block content %}
             <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">Monitor application status. Check logs if issues occur.</p>
             
             <div class="status-item" style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
-              <span class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
+              <span id="mavlink-manager-indicator" class="status-indicator status-red" style="width: 12px; height: 12px; border-radius: 50%; background-color: #dc3545; flex-shrink: 0;"></span>
               <span>Mavlink Manager</span>
             </div>
             
@@ -400,6 +400,44 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // שמירת instance גלובלי (למקרה של צורך בעדכון ידני)
   window.dashboardWSClient = wsClient;
+  
+  // Function to update Mavlink Manager status indicator
+  function updateMavlinkManagerIndicator(connected) {
+    const indicator = document.getElementById("mavlink-manager-indicator");
+    if (!indicator) return;
+    
+    if (connected) {
+      // Green when connected
+      indicator.style.backgroundColor = "#28a745";
+      indicator.classList.remove("status-red");
+      indicator.classList.add("status-green");
+    } else {
+      // Red when disconnected
+      indicator.style.backgroundColor = "#dc3545";
+      indicator.classList.remove("status-green");
+      indicator.classList.add("status-red");
+    }
+  }
+  
+  // Function to load FC status from server
+  function loadMavlinkManagerStatus() {
+    fetch("/flight-controller/status")
+      .then(response => response.json())
+      .then(data => {
+        updateMavlinkManagerIndicator(data.connected || false);
+      })
+      .catch(error => {
+        console.error("Error loading Mavlink Manager status:", error);
+        // Default to disconnected on error
+        updateMavlinkManagerIndicator(false);
+      });
+  }
+  
+  // Load status on page load
+  loadMavlinkManagerStatus();
+  
+  // Update status periodically (every 5 seconds)
+  setInterval(loadMavlinkManagerStatus, 5000);
 });
 </script>
 {% endblock %}

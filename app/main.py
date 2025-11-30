@@ -33,6 +33,13 @@ from app.api import fc_routes, ws_fc_routes
 from app.core.monitor_manager import monitor_manager
 from app.core.system import get_static_info, get_slow_dynamic_info, get_fast_dynamic_info
 
+# Import FC connection manager and services for auto-reconnect
+from app.fc.manager import fc_connection_manager
+from app.modules.flight_controller import services
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME, version=settings.APP_VERSION, debug=settings.DEBUG
@@ -55,11 +62,12 @@ app.include_router(users_router)
 app.include_router(application_router)
 
 # Include WebSocket router
-app.include_router(websocket_router.router)
-
-# Include FC API routers
+# Include FC API routers FIRST (more specific routes must come before generic ones)
 app.include_router(fc_routes.router)
 app.include_router(ws_fc_routes.router)
+
+# Include general WebSocket router AFTER (less specific routes)
+app.include_router(websocket_router.router)
 
 
 # Root redirect to dashboard
@@ -95,6 +103,31 @@ async def startup_event():
     # Start all monitors
     await monitor_manager.start_all()
     print("All monitors started")
+    
+    # Auto-reconnect to Flight Controller if previously connected
+    try:
+        fc_status = services.load_fc_status()
+        if fc_status.get("connected") and fc_status.get("device") and fc_status.get("baud"):
+            logger.info(f"Attempting to auto-reconnect to FC: {fc_status['device']} @ {fc_status['baud']}")
+            try:
+                success = await fc_connection_manager.connect(
+                    fc_status["device"],
+                    fc_status["baud"]
+                )
+                if success:
+                    logger.info(f"Successfully auto-reconnected to FC: {fc_status['device']} @ {fc_status['baud']}")
+                else:
+                    logger.warning(f"Failed to auto-reconnect to FC: {fc_status['device']} @ {fc_status['baud']}")
+                    # Update status to disconnected since connection failed
+                    services.save_fc_status(False, None, None)
+            except Exception as e:
+                logger.error(f"Error during FC auto-reconnect: {e}", exc_info=True)
+                # Update status to disconnected since connection failed
+                services.save_fc_status(False, None, None)
+        else:
+            logger.info("No previous FC connection found, skipping auto-reconnect")
+    except Exception as e:
+        logger.error(f"Error checking FC connection status on startup: {e}", exc_info=True)
 
 
 # Shutdown event - stop all monitors
