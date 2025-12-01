@@ -1,87 +1,93 @@
 """
-Router for Flight Controller module
+Router for Flight Controller module.
+
+Exposes both the HTML page and the API endpoints for managing the
+connection to the flight controller.
 """
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from __future__ import annotations
+
+from typing import Any, Dict, Literal
+
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
+
 from app.core.templates import templates
 from app.modules.flight_controller import services
-from app.fc.manager import fc_connection_manager
+from app.modules.flight_controller.connection_manager import FCConnectionManager
 
 router = APIRouter(prefix="/flight-controller", tags=["flight-controller"])
 
 
-class FCStatusRequest(BaseModel):
-    """Model for flight controller status request"""
-    connected: bool
-
-
-class FCSettingsRequest(BaseModel):
-    """Model for flight controller settings request"""
-    connection_type: str
-    device: str
-    baud: int
-
-
 @router.get("/", response_class=HTMLResponse)
 async def flight_controller_page(request: Request):
-    """Flight Controller page"""
+    """Flight Controller page."""
     data = services.get_flight_controller_data()
-    # Load settings to pass to template
-    settings = services.load_fc_settings()
-    data.update(settings)
     return templates.TemplateResponse(
         "flight_controller/templates/flight_controller.html",
         {"request": request, **data},
     )
 
 
-@router.get("/status")
-async def get_fc_status():
-    """Get flight controller connection status"""
-    # Get saved status from file
-    saved_status = services.load_fc_status()
-    # Get real-time status from connection manager (including heartbeat)
-    real_status = fc_connection_manager.get_status()
-    # Combine both - use saved status for persistence, but add heartbeat info
-    return JSONResponse({
-        "connected": saved_status.get("connected", False),
-        "device": saved_status.get("device"),
-        "baud": saved_status.get("baud"),
-        "heartbeat_active": real_status.get("heartbeat_active", False)
-    })
+class FCConnectRequest(BaseModel):
+    """Request body for connecting to the flight controller."""
+
+    connection_type: Literal["serial", "udp", "tcp"] = Field(
+        ..., description="Connection type: serial / udp / tcp"
+    )
+    baudrate: int = Field(..., description="Baudrate for serial or ignored for UDP/TCP")
+    params: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Connection params: for serial: {device}, for UDP/TCP: {host, port}",
+    )
 
 
-@router.post("/status")
-async def update_fc_status(request: FCStatusRequest):
-    """Update flight controller connection status"""
-    success = services.save_fc_status(request.connected)
-    
-    if success:
-        return JSONResponse({"status": "success", "connected": request.connected})
-    else:
-        return JSONResponse({"status": "error", "message": "Failed to save status"}, status_code=500)
+def _get_fc_manager(request: Request) -> FCConnectionManager:
+    manager = getattr(request.app.state, "fc_manager", None)
+    if manager is None:
+        raise HTTPException(status_code=500, detail="Flight Controller manager not initialized")
+    return manager
 
 
-@router.get("/settings")
-async def get_fc_settings():
-    """Get flight controller settings"""
-    settings = services.load_fc_settings()
-    return JSONResponse(settings)
+@router.post("/api/flight-controller/connect")
+async def connect_flight_controller(request: Request, body: FCConnectRequest):
+    """
+    Connect to the flight controller using the shared FCConnectionManager.
+    """
+    manager = _get_fc_manager(request)
+    try:
+        await manager.connect(
+            connection_type=body.connection_type,
+            params=body.params,
+            baudrate=body.baudrate,
+        )
+    except (ValueError, FileNotFoundError, PermissionError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:  # pragma: no cover - defensive
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to connect to flight controller: {exc}",
+        ) from exc
+
+    return manager.get_status()
 
 
-@router.post("/settings")
-async def save_fc_settings(request: FCSettingsRequest):
-    """Save flight controller settings"""
-    settings = {
-        "connection_type": request.connection_type,
-        "device": request.device,
-        "baud": request.baud
-    }
-    success = services.save_fc_settings(settings)
-    
-    if success:
-        return JSONResponse({"status": "success", "settings": settings})
-    else:
-        return JSONResponse({"status": "error", "message": "Failed to save settings"}, status_code=500)
+@router.post("/api/flight-controller/disconnect")
+async def disconnect_flight_controller(request: Request):
+    """
+    Disconnect from the flight controller.
+    """
+    manager = _get_fc_manager(request)
+    await manager.disconnect(user_requested=True)
+    return manager.get_status()
+
+
+@router.get("/api/flight-controller/status")
+async def flight_controller_status(request: Request):
+    """
+    Get current status of the flight controller connection.
+    """
+    manager = _get_fc_manager(request)
+    return manager.get_status()
+

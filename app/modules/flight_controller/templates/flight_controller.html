@@ -28,19 +28,12 @@
           <p style="font-size: 0.85em; color: var(--text-secondary); margin-top: 4px;">Default baudrate is 57600</p>
         </div>
 
-        <!-- FC Internal Address -->
-        <div class="form-group">
-          <label class="form-label">FC Internal Address</label>
-          <p style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 4px;">Internal address for Flight Controller communication</p>
-          <input type="text" class="form-input" id="fc-device-input">
-          <p style="font-size: 0.85em; color: var(--text-secondary); margin-top: 8px;">This is the internal address Raspberry Pi uses for communication with the Flight Controller. Only change if you know what you are doing!</p>
-        </div>
       </div>
 
       <!-- Buttons -->
       <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
         <button class="btn btn-warning" id="fc-connect-restart-btn">
-          Restart
+          Connect
         </button>
         <button class="btn btn-danger" id="fc-disconnect-btn">
           Disconnect
@@ -54,32 +47,52 @@
       <h3 class="card-title">Mavlink Inspector</h3>
     </div>
     <div class="card-body">
-      <div id="fc-status-display">
-        <p><strong>Status:</strong> <span id="fc-connection-status">Disconnected</span></p>
+      <!-- Content when Heartbeat is ACTIVE -->
+      <div id="fc-content-with-heartbeat" style="display: none;">
+        <!-- Status Messages -->
+        <div id="fc-status-messages" style="margin-top: 1rem; display: none;">
+          <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Status Messages</h4>
+          <div id="fc-status-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        
+        <!-- Telemetry Messages -->
+        <div id="fc-telemetry-messages" style="margin-top: 1rem; display: none;">
+          <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Telemetry Messages</h4>
+          <div id="fc-telemetry-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        
+        <!-- Sensors Messages -->
+        <div id="fc-sensors-messages" style="margin-top: 1rem; display: none;">
+          <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Sensors Messages</h4>
+          <div id="fc-sensors-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        
+        <!-- Map Messages -->
+        <div id="fc-map-messages" style="margin-top: 1rem; display: none;">
+          <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Map/GPS Messages</h4>
+          <div id="fc-map-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+        </div>
       </div>
       
-      <!-- Status Messages -->
-      <div id="fc-status-messages" style="margin-top: 1rem; display: none;">
-        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Status Messages</h4>
-        <div id="fc-status-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
-      </div>
-      
-      <!-- Telemetry Messages -->
-      <div id="fc-telemetry-messages" style="margin-top: 1rem; display: none;">
-        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Telemetry Messages</h4>
-        <div id="fc-telemetry-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
-      </div>
-      
-      <!-- Sensors Messages -->
-      <div id="fc-sensors-messages" style="margin-top: 1rem; display: none;">
-        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Sensors Messages</h4>
-        <div id="fc-sensors-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
-      </div>
-      
-      <!-- Map Messages -->
-      <div id="fc-map-messages" style="margin-top: 1rem; display: none;">
-        <h4 style="font-size: 1em; margin-bottom: 0.5rem; color: var(--text-primary);">Map/GPS Messages</h4>
-        <div id="fc-map-messages-content" style="background: #000000; color: #ffffff; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; max-height: 300px; overflow-y: auto;"></div>
+      <!-- Content when Heartbeat is INACTIVE -->
+      <div id="fc-content-no-heartbeat" style="margin-top: 1rem;">
+        <div style="padding: 1.5rem; background: var(--card-bg); border-radius: 4px; border: 2px solid var(--progress-danger);">
+          <h4 style="font-size: 1.1em; margin-bottom: 1rem; color: var(--text-primary);">Detailed Connection Status</h4>
+          <div id="fc-connection-details" style="color: var(--text-secondary);">
+            <p style="margin-bottom: 0.5rem;"><strong>Connection Status:</strong> <span id="fc-detail-connection-status">Not Connected</span></p>
+            <p style="margin-bottom: 0.5rem;"><strong>Last Heartbeat:</strong> <span id="fc-detail-last-heartbeat">Never Received</span></p>
+            <p style="margin-bottom: 0.5rem;"><strong>Time Since Last Heartbeat:</strong> <span id="fc-detail-time-since-heartbeat">-</span></p>
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+              <p style="font-size: 0.9em; margin-bottom: 0.5rem;"><strong>Instructions:</strong></p>
+              <ul style="font-size: 0.85em; margin-left: 1.5rem; color: var(--text-secondary);">
+                <li>Ensure the controller is physically connected</li>
+                <li>Check connection settings (Device, Baud Rate)</li>
+                <li>Click "Connect" to connect to the controller</li>
+                <li>If the problem persists, try "Restart"</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -94,551 +107,4 @@
     </p>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const connectRestartBtn = document.getElementById("fc-connect-restart-btn");
-  const disconnectBtn = document.getElementById("fc-disconnect-btn");
-  const connectionTypeSelect = document.getElementById("fc-connection-type");
-  const deviceInput = document.getElementById("fc-device-input");
-  const baudSelect = document.getElementById("fc-baud-select");
-  const statusDisplay = document.getElementById("fc-connection-status");
-  
-  // WebSocket connections
-  let statusWS = null;
-  let telemetryWS = null;
-  let sensorsWS = null;
-  let mapWS = null;
-  
-  // Display containers
-  const statusMessagesContainer = document.getElementById("fc-status-messages");
-  const statusMessagesContent = document.getElementById("fc-status-messages-content");
-  const telemetryMessagesContainer = document.getElementById("fc-telemetry-messages");
-  const telemetryMessagesContent = document.getElementById("fc-telemetry-messages-content");
-  const sensorsMessagesContainer = document.getElementById("fc-sensors-messages");
-  const sensorsMessagesContent = document.getElementById("fc-sensors-messages-content");
-  const mapMessagesContainer = document.getElementById("fc-map-messages");
-  const mapMessagesContent = document.getElementById("fc-map-messages-content");
-  
-  // Function to display MAVLink data in key:value format
-  // MAVLink message type mapping (number to name)
-  const mavlinkMessageTypes = {
-    0: "HEARTBEAT", 1: "SYS_STATUS", 2: "SYSTEM_TIME", 3: "PING", 4: "CHANGE_OPERATOR_CONTROL",
-    5: "CHANGE_OPERATOR_CONTROL_ACK", 6: "AUTH_KEY", 7: "SET_MODE", 11: "PARAM_REQUEST_READ",
-    20: "PARAM_VALUE", 21: "PARAM_SET", 22: "GPS_RAW_INT", 24: "GPS_STATUS", 25: "SCALED_IMU",
-    26: "RAW_IMU", 27: "RAW_PRESSURE", 28: "SCALED_PRESSURE", 29: "ATTITUDE", 30: "ATTITUDE_QUATERNION",
-    31: "LOCAL_POSITION_NED", 32: "GLOBAL_POSITION_INT", 33: "RC_CHANNELS_SCALED", 34: "RC_CHANNELS_RAW",
-    35: "SERVO_OUTPUT_RAW", 36: "MISSION_REQUEST_PARTIAL_LIST", 37: "MISSION_WRITE_PARTIAL_LIST",
-    38: "MISSION_ITEM", 39: "MISSION_REQUEST", 40: "MISSION_SET_CURRENT", 41: "MISSION_CURRENT",
-    42: "MISSION_REQUEST_LIST", 43: "MISSION_COUNT", 44: "MISSION_CLEAR_ALL", 45: "MISSION_ITEM_REACHED",
-    46: "MISSION_ACK", 47: "SET_GPS_GLOBAL_ORIGIN", 48: "GPS_GLOBAL_ORIGIN", 49: "PARAM_MAP_RC",
-    50: "SAFETY_SET_ALLOWED_AREA", 51: "SAFETY_ALLOWED_AREA", 52: "ATTITUDE_QUATERNION_COV",
-    54: "NAV_CONTROLLER_OUTPUT", 55: "GLOBAL_POSITION_INT_COV", 61: "LOCAL_POSITION_NED_COV",
-    62: "RC_CHANNELS", 63: "REQUEST_DATA_STREAM", 64: "DATA_STREAM", 65: "MANUAL_CONTROL",
-    66: "RC_CHANNELS_OVERRIDE", 67: "MISSION_ITEM_INT", 69: "VFR_HUD", 70: "COMMAND_INT",
-    73: "COMMAND_LONG", 74: "COMMAND_ACK", 75: "MANUAL_SETPOINT", 76: "SET_ATTITUDE_TARGET",
-    77: "ATTITUDE_TARGET", 80: "SET_POSITION_TARGET_LOCAL_NED", 81: "POSITION_TARGET_LOCAL_NED",
-    82: "SET_POSITION_TARGET_GLOBAL_INT", 83: "POSITION_TARGET_GLOBAL_INT", 84: "LOCAL_POSITION_NED_SYSTEM_GLOBAL_OFFSET",
-    85: "HIL_STATE", 86: "HIL_CONTROLS", 87: "HIL_RC_INPUTS_RAW", 89: "OPTICAL_FLOW", 90: "GLOBAL_VISION_POSITION_ESTIMATE",
-    91: "VISION_POSITION_ESTIMATE", 92: "VISION_SPEED_ESTIMATE", 93: "VICON_POSITION_ESTIMATE",
-    100: "SCALED_IMU2", 101: "LOG_REQUEST_LIST", 102: "LOG_ENTRY", 103: "LOG_REQUEST_DATA",
-    104: "LOG_DATA", 105: "LOG_ERASE", 106: "LOG_REQUEST_END", 107: "GPS_INJECT_DATA",
-    108: "GPS2_RAW", 109: "POWER_STATUS", 110: "SERIAL_CONTROL", 111: "GPS_RTK", 112: "GPS2_RTK",
-    113: "SCALED_IMU3", 114: "DATA_TRANSMISSION_HANDSHAKE", 115: "ENCAPSULATED_DATA", 116: "DISTANCE_SENSOR",
-    117: "TERRAIN_REQUEST", 118: "TERRAIN_DATA", 119: "TERRAIN_CHECK", 120: "TERRAIN_REPORT",
-    121: "BATTERY_STATUS", 122: "AUTOPILOT_VERSION", 123: "LANDING_TARGET", 124: "FENCE_STATUS",
-    125: "MAG_CAL_REPORT", 126: "EFI_STATUS", 127: "ESTIMATOR_STATUS", 128: "WIND_COV",
-    129: "GPS_INPUT", 130: "GPS_RTCM_DATA", 131: "HIGH_LATENCY", 132: "HIGH_LATENCY2",
-    133: "VIBRATION", 134: "HOME_POSITION", 135: "SET_HOME_POSITION", 136: "MESSAGE_INTERVAL",
-    137: "EXTENDED_SYS_STATE", 138: "ADSB_VEHICLE", 139: "COLLISION", 140: "V2_EXTENSION",
-    141: "MEMORY_VECT", 142: "DEBUG_VECT", 143: "NAMED_VALUE_FLOAT", 144: "NAMED_VALUE_INT",
-    145: "STATUSTEXT", 146: "DEBUG", 147: "SETUP_SIGNING", 148: "BUTTON_CHANGE", 149: "PLAY_TUNE",
-    150: "CAMERA_INFORMATION", 151: "CAMERA_SETTINGS", 152: "STORAGE_INFORMATION", 153: "CAMERA_CAPTURE_STATUS",
-    154: "CAMERA_IMAGE_CAPTURED", 155: "FLIGHT_INFORMATION", 156: "MOUNT_ORIENTATION", 157: "LOGGING_DATA",
-    158: "LOGGING_DATA_ACKED", 159: "LOGGING_ACK", 160: "VIDEO_STREAM_INFORMATION", 161: "VIDEO_STREAM_STATUS",
-    162: "WIFI_CONFIG_AP", 163: "PROTOCOL_VERSION", 164: "UAVCAN_NODE_STATUS", 165: "UAVCAN_NODE_INFO",
-    166: "PARAM_EXT_REQUEST_READ", 167: "PARAM_EXT_REQUEST_LIST", 168: "PARAM_EXT_VALUE", 169: "PARAM_EXT_SET",
-    170: "PARAM_EXT_ACK", 171: "OBSTACLE_DISTANCE", 172: "ODOMETRY", 173: "TRAJECTORY_REPRESENTATION_BEZIER",
-    174: "TRAJECTORY_REPRESENTATION_WAYPOINTS", 175: "CELLULAR_STATUS", 176: "ISBD_LINK_STATUS",
-    177: "UTM_GLOBAL_POSITION", 178: "DEBUG_FLOAT_ARRAY", 179: "ORBIT_EXECUTION_STATUS",
-    180: "STATUSTEXT_LONG", 181: "SMART_BATTERY_INFO", 182: "SMART_BATTERY_STATUS", 183: "ACTUATOR_OUTPUT_STATUS",
-    184: "TIME_ESTIMATE_TO_TARGET", 185: "TUNNEL", 186: "ONBOARD_COMPUTER_STATUS", 187: "COMPONENT_INFORMATION",
-    188: "PLAY_TUNE_V2", 189: "WHEEL_DISTANCE", 190: "WINCH_STATUS", 191: "OPEN_DRONE_ID_BASIC_ID",
-    192: "OPEN_DRONE_ID_LOCATION", 193: "OPEN_DRONE_ID_AUTHENTICATION", 194: "OPEN_DRONE_ID_SELF_ID",
-    195: "OPEN_DRONE_ID_SYSTEM", 196: "OPEN_DRONE_ID_OPERATOR_ID", 197: "OPEN_DRONE_ID_MESSAGE_PACK",
-    298: "TIMESYNC"
-  };
-
-  function displayMAVLinkData(topic, data) {
-    if (!data || !data.type) {
-      return;
-    }
-    
-    // Log all data to console
-    console.log(`[MAVLink] Topic: ${topic}, Message:`, data);
-    
-    let container, content;
-    switch(topic) {
-      case "status":
-        container = statusMessagesContainer;
-        content = statusMessagesContent;
-        break;
-      case "telemetry":
-        container = telemetryMessagesContainer;
-        content = telemetryMessagesContent;
-        break;
-      case "sensors":
-        container = sensorsMessagesContainer;
-        content = sensorsMessagesContent;
-        break;
-      case "map":
-        container = mapMessagesContainer;
-        content = mapMessagesContent;
-        break;
-      default:
-        return;
-    }
-    
-    if (!container || !content) {
-      return;
-    }
-    
-    // Show container
-    container.style.display = "block";
-    
-    // Get message name (convert number to name if needed)
-    // Priority: 1. message_type (preserved name), 2. type_id (message ID), 3. type (may be MAV_TYPE)
-    let messageName = null;
-    
-    // First priority: use message_type if available (preserved before override)
-    if (data.message_type) {
-      messageName = data.message_type;
-    }
-    // Second priority: use type_id with mapping
-    else if (data.type_id !== undefined && mavlinkMessageTypes[data.type_id]) {
-      messageName = mavlinkMessageTypes[data.type_id];
-    }
-    // Third priority: if type is a string, use it as is
-    else if (typeof data.type === "string") {
-      messageName = data.type;
-    }
-    // Last resort: if type is a number, use mapping (but this might be MAV_TYPE, not message type)
-    else if (typeof data.type === "number" && mavlinkMessageTypes[data.type]) {
-      messageName = mavlinkMessageTypes[data.type];
-    }
-    // Fallback
-    else {
-      messageName = data.type || "UNKNOWN";
-    }
-    
-    // Create HTML for key:value display with white text on black background
-    let html = `<div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #333;">`;
-    html += `<strong style="color: #00ff00;">${messageName}</strong><br>`;
-    
-    // Display all fields as key: value
-    for (const [key, value] of Object.entries(data)) {
-      if (key === "type") continue; // Skip type as it's already shown
-      
-      let displayValue = value;
-      if (value === null || value === undefined) {
-        displayValue = "null";
-      } else if (typeof value === "object") {
-        displayValue = JSON.stringify(value);
-      } else if (typeof value === "boolean") {
-        displayValue = value ? "true" : "false";
-      } else if (typeof value === "number") {
-        displayValue = value.toString();
-      }
-      
-      html += `<span style="color: #888;">${key}:</span> <span style="color: #ffffff;">${displayValue}</span><br>`;
-    }
-    
-    html += `</div>`;
-    
-    // Prepend new message (most recent first)
-    content.innerHTML = html + content.innerHTML;
-    
-    // Limit to last 10 messages per topic
-    const messages = content.querySelectorAll("div");
-    if (messages.length > 10) {
-      messages[messages.length - 1].remove();
-    }
-  }
-  
-  // Load settings from server
-  async function loadSettings() {
-    try {
-      const response = await fetch("/flight-controller/settings");
-      const settings = await response.json();
-      
-      // Update form fields with loaded settings
-      if (connectionTypeSelect) {
-        connectionTypeSelect.value = settings.connection_type || "serial";
-      }
-      if (baudSelect) {
-        baudSelect.value = settings.baud || 57600;
-      }
-      updateDeviceByConnectionType();
-    } catch (error) {
-      console.error("Error loading settings:", error);
-    }
-  }
-  
-  // Update device based on connection type
-  function updateDeviceByConnectionType() {
-    if (!connectionTypeSelect || !deviceInput) return;
-    
-    const connectionType = connectionTypeSelect.value;
-    if (connectionType === "serial") {
-      deviceInput.value = "/dev/serial0";
-    } else if (connectionType === "usb") {
-      deviceInput.value = "/dev/ttyACM0";
-    }
-    
-    // Save settings when changed
-    saveSettings();
-  }
-  
-  // Save settings to server
-  async function saveSettings() {
-    if (!connectionTypeSelect || !deviceInput || !baudSelect) return;
-    
-    const settings = {
-      connection_type: connectionTypeSelect.value,
-      device: deviceInput.value,
-      baud: parseInt(baudSelect.value)
-    };
-    
-    try {
-      await fetch("/flight-controller/settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(settings)
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    }
-  }
-  
-  // Listen to connection type changes
-  if (connectionTypeSelect) {
-    connectionTypeSelect.addEventListener("change", updateDeviceByConnectionType);
-  }
-  
-  // Listen to baud rate changes
-  if (baudSelect) {
-    baudSelect.addEventListener("change", saveSettings);
-  }
-  
-  // Function to update buttons based on FC connection status
-  function updateFCButtons(connected) {
-    if (!connectRestartBtn || !disconnectBtn) return;
-    
-    if (connected) {
-      // FC is connected
-      // Disconnect button: enabled
-      disconnectBtn.disabled = false;
-      disconnectBtn.classList.remove("fc-disconnect-disabled");
-      disconnectBtn.style.opacity = "1";
-      disconnectBtn.style.cursor = "pointer";
-      
-      // Restart button: stays as "Restart"
-      connectRestartBtn.textContent = "Restart";
-      connectRestartBtn.disabled = false;
-    } else {
-      // FC is not connected
-      // Disconnect button: disabled
-      disconnectBtn.disabled = true;
-      disconnectBtn.classList.add("fc-disconnect-disabled");
-      disconnectBtn.style.opacity = "0.5";
-      disconnectBtn.style.cursor = "not-allowed";
-      
-      // Restart button: changes to "Connect"
-      connectRestartBtn.textContent = "Connect";
-      connectRestartBtn.disabled = false;
-    }
-  }
-  
-  // Function to update connection status display
-  function updateStatusDisplay(connected, message) {
-    if (statusDisplay) {
-      statusDisplay.textContent = connected ? "Connected" : "Disconnected";
-      statusDisplay.style.color = connected ? "green" : "red";
-    }
-  }
-  
-  // Function to connect WebSockets
-  function connectWebSockets() {
-    // Close existing connections
-    disconnectWebSockets();
-    
-    // Connect to status WebSocket
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsBase = `${protocol}//${window.location.host}`;
-    
-    statusWS = new WebSocket(`${wsBase}/ws/fc-status`);
-    statusWS.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        // Handle different message types
-        if (data.type === "connected" || data.type === "heartbeat") {
-          return;
-        }
-        
-        if (data.type === "data" && data.data) {
-          displayMAVLinkData("status", data.data);
-          updateStatusDisplay(true, "Connected");
-        }
-      } catch (error) {
-        console.error("FC Status WebSocket - error parsing message:", error);
-      }
-    };
-    statusWS.onerror = (error) => {
-      console.error("FC Status WebSocket error:", error);
-    };
-    statusWS.onclose = () => {
-      statusWS = null;
-    };
-    
-    // Connect to telemetry WebSocket
-    telemetryWS = new WebSocket(`${wsBase}/ws/fc-telemetry`);
-    telemetryWS.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === "connected" || data.type === "heartbeat") {
-          return;
-        }
-        
-        if (data.type === "data" && data.data) {
-          displayMAVLinkData("telemetry", data.data);
-        }
-      } catch (error) {
-        console.error("FC Telemetry WebSocket - error parsing message:", error);
-      }
-    };
-    telemetryWS.onerror = (error) => {
-      console.error("FC Telemetry WebSocket error:", error);
-    };
-    telemetryWS.onclose = () => {
-      telemetryWS = null;
-    };
-    
-    // Connect to sensors WebSocket
-    sensorsWS = new WebSocket(`${wsBase}/ws/fc-sensors`);
-    sensorsWS.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "data" && data.data) {
-          displayMAVLinkData("sensors", data.data);
-        }
-      } catch (error) {
-        console.error("FC Sensors WebSocket - error parsing message:", error);
-      }
-    };
-    sensorsWS.onerror = (error) => {
-      console.error("FC Sensors WebSocket error:", error);
-    };
-    sensorsWS.onclose = () => {
-      sensorsWS = null;
-    };
-    
-    // Connect to map WebSocket
-    mapWS = new WebSocket(`${wsBase}/ws/fc-map`);
-    mapWS.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === "connected" || data.type === "heartbeat") {
-          return;
-        }
-        
-        if (data.type === "data" && data.data) {
-          displayMAVLinkData("map", data.data);
-        }
-      } catch (error) {
-        console.error("FC Map WebSocket - error parsing message:", error);
-      }
-    };
-    mapWS.onerror = (error) => {
-      console.error("FC Map WebSocket error:", error);
-    };
-    mapWS.onclose = () => {
-      mapWS = null;
-    };
-  }
-  
-  // Function to disconnect WebSockets
-  function disconnectWebSockets() {
-    if (statusWS) {
-      statusWS.close();
-      statusWS = null;
-    }
-    if (telemetryWS) {
-      telemetryWS.close();
-      telemetryWS = null;
-    }
-    if (sensorsWS) {
-      sensorsWS.close();
-      sensorsWS = null;
-    }
-    if (mapWS) {
-      mapWS.close();
-      mapWS = null;
-    }
-    
-    // Clear all displays
-    if (statusMessagesContent) statusMessagesContent.innerHTML = "";
-    if (telemetryMessagesContent) telemetryMessagesContent.innerHTML = "";
-    if (sensorsMessagesContent) sensorsMessagesContent.innerHTML = "";
-    if (mapMessagesContent) mapMessagesContent.innerHTML = "";
-    
-    // Hide containers
-    if (statusMessagesContainer) statusMessagesContainer.style.display = "none";
-    if (telemetryMessagesContainer) telemetryMessagesContainer.style.display = "none";
-    if (sensorsMessagesContainer) sensorsMessagesContainer.style.display = "none";
-    if (mapMessagesContainer) mapMessagesContainer.style.display = "none";
-  }
-  
-  // Function to connect to FC
-  async function connectFC() {
-    try {
-      connectRestartBtn.disabled = true;
-      
-      // Load settings directly from file
-      const settingsResponse = await fetch("/flight-controller/settings");
-      if (!settingsResponse.ok) {
-        throw new Error("Failed to load settings from file");
-      }
-      
-      const settings = await settingsResponse.json();
-      const device = settings.device;
-      const baud = settings.baud;
-      
-      // Validate settings
-      if (!device || !device.trim()) {
-        alert("Invalid device path in settings file");
-        return;
-      }
-      
-      if (!baud || isNaN(baud) || baud <= 0) {
-        alert("Invalid baud rate in settings file");
-        return;
-      }
-      
-      // Connect using settings from file
-      const response = await fetch("/api/fc/connect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ device: device.trim(), baud: parseInt(baud) })
-      });
-      
-      const data = await response.json();
-      
-      if (data.connected) {
-        updateFCButtons(true);
-        updateStatusDisplay(true, "Connected successfully");
-        // Open WebSockets after successful connection
-        connectWebSockets();
-      } else {
-        updateFCButtons(false);
-        updateStatusDisplay(false, data.message || "Connection failed");
-        alert("Failed to connect: " + (data.message || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Error connecting to FC:", error);
-      updateFCButtons(false);
-      updateStatusDisplay(false, "Connection error");
-      alert("Error connecting to FC: " + error.message);
-    } finally {
-      connectRestartBtn.disabled = false;
-    }
-  }
-  
-  // Function to disconnect from FC
-  async function disconnectFC() {
-    try {
-      disconnectBtn.disabled = true;
-      const response = await fetch("/api/fc/disconnect", {
-        method: "POST"
-      });
-      
-      const data = await response.json();
-      
-      // Close WebSockets
-      disconnectWebSockets();
-      
-      updateFCButtons(false);
-      updateStatusDisplay(false, "Disconnected");
-    } catch (error) {
-      console.error("Error disconnecting from FC:", error);
-      alert("Error disconnecting from FC: " + error.message);
-    } finally {
-      disconnectBtn.disabled = false;
-    }
-  }
-  
-  // Button event handlers
-  if (connectRestartBtn) {
-    connectRestartBtn.addEventListener("click", async () => {
-      const status = await fetch("/api/fc/status").then(r => r.json());
-      if (status.connected) {
-        // Restart: disconnect then connect
-        await disconnectFC();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await connectFC();
-      } else {
-        // Connect
-        await connectFC();
-      }
-    });
-  }
-  
-  if (disconnectBtn) {
-    disconnectBtn.addEventListener("click", disconnectFC);
-  }
-  
-  // Function to load FC status from server
-  async function loadFCStatus() {
-    try {
-      const response = await fetch("/api/fc/status");
-      const data = await response.json();
-      updateFCButtons(data.connected || false);
-      updateStatusDisplay(data.connected || false, data.connected ? "Connected" : "Disconnected");
-      
-      // If connected but WebSockets are not open, open them
-      if (data.connected && (!statusWS || statusWS.readyState !== WebSocket.OPEN)) {
-        connectWebSockets();
-      }
-      // If not connected but WebSockets are open, close them
-      if (!data.connected && (statusWS || telemetryWS || sensorsWS || mapWS)) {
-        disconnectWebSockets();
-      }
-    } catch (error) {
-      console.error("Error loading FC status:", error);
-      updateFCButtons(false);
-      updateStatusDisplay(false, "Error loading status");
-    }
-  }
-  
-  // Load settings and status on page load
-  loadSettings();
-  loadFCStatus();
-  
-  // Update status periodically (every 5 seconds)
-  setInterval(loadFCStatus, 5000);
-  
-  // Cleanup on page unload
-  window.addEventListener("beforeunload", () => {
-    disconnectWebSockets();
-  });
-});
-</script>
 {% endblock %}

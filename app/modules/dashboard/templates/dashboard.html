@@ -401,44 +401,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // שמירת instance גלובלי (למקרה של צורך בעדכון ידני)
   window.dashboardWSClient = wsClient;
   
-  // Function to update Mavlink Manager status indicator
-  function updateMavlinkManagerIndicator(connected) {
-    const indicator = document.getElementById("mavlink-manager-indicator");
-    if (!indicator) return;
-    
-    if (connected) {
-      // Green when connected
-      indicator.style.backgroundColor = "#28a745";
-      indicator.classList.remove("status-red");
-      indicator.classList.add("status-green");
-    } else {
-      // Red when disconnected
-      indicator.style.backgroundColor = "#dc3545";
-      indicator.classList.remove("status-green");
-      indicator.classList.add("status-red");
-    }
-  }
-  
-  // Function to load FC status from server
-  function loadMavlinkManagerStatus() {
-    fetch("/flight-controller/status")
-      .then(response => response.json())
-      .then(data => {
-        updateMavlinkManagerIndicator(data.connected || false);
-      })
-      .catch(error => {
-        console.error("Error loading Mavlink Manager status:", error);
-        // Default to disconnected on error
-        updateMavlinkManagerIndicator(false);
-      });
-  }
-  
-  // Load status on page load
-  loadMavlinkManagerStatus();
-  
-  // Update status periodically (every 5 seconds)
-  setInterval(loadMavlinkManagerStatus, 5000);
-  
   // Function to update Autostart status indicator
   function updateAutostartIndicator(enabled) {
     const indicator = document.getElementById("autostart-indicator");

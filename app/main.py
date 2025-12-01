@@ -26,16 +26,20 @@ from app.modules.application import router as application_router
 # Import WebSocket router
 from app.core import websocket_router
 
-# Import FC API routers
-from app.api import fc_routes, ws_fc_routes
-
 # Import Monitor Manager
 from app.core.monitor_manager import monitor_manager
 from app.core.system import get_static_info, get_slow_dynamic_info, get_fast_dynamic_info
 
-# Import FC connection manager and services for auto-reconnect
-from app.fc.manager import fc_connection_manager
-from app.modules.flight_controller import services
+from app.modules.flight_controller.connection_manager import (
+    FCConnectionManager,
+    heartbeat_watcher,
+)
+from app.modules.flight_controller.connection_state import (
+    load_connection_state,
+    save_connection_state,
+    ConnectionState,
+)
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,6 +48,9 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title=settings.APP_NAME, version=settings.APP_VERSION, debug=settings.DEBUG
 )
+
+# Attach Flight Controller connection manager to app state
+app.state.fc_manager = FCConnectionManager()
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -62,11 +69,6 @@ app.include_router(users_router)
 app.include_router(application_router)
 
 # Include WebSocket router
-# Include FC API routers FIRST (more specific routes must come before generic ones)
-app.include_router(fc_routes.router)
-app.include_router(ws_fc_routes.router)
-
-# Include general WebSocket router AFTER (less specific routes)
 app.include_router(websocket_router.router)
 
 
@@ -76,58 +78,62 @@ async def root():
     return RedirectResponse(url="/dashboard")
 
 
-# Startup event - start all monitors
+# Startup event - start all monitors and restore FC connection
 @app.on_event("startup")
 async def startup_event():
-    """Start all monitors when application starts"""
-    
+    """Start all monitors and restore Flight Controller connection when application starts."""
+
     # Register all monitors
     monitor_manager.register_monitor(
         topic="static_info",
         data_function=get_static_info,
-        interval=None  # one-time
+        interval=None,  # one-time
     )
-    
+
     monitor_manager.register_monitor(
         topic="slow_info",
         data_function=get_slow_dynamic_info,
-        interval=60  # every 60 seconds
+        interval=60,  # every 60 seconds
     )
-    
+
     monitor_manager.register_monitor(
         topic="fast_info",
         data_function=get_fast_dynamic_info,
-        interval=5  # every 5 seconds
+        interval=5,  # every 5 seconds
     )
-    
+
     # Start all monitors
     await monitor_manager.start_all()
     print("All monitors started")
-    
-    # Auto-reconnect to Flight Controller if previously connected
-    try:
-        fc_status = services.load_fc_status()
-        if fc_status.get("connected") and fc_status.get("device") and fc_status.get("baud"):
-            logger.info(f"Attempting to auto-reconnect to FC: {fc_status['device']} @ {fc_status['baud']}")
+
+    # Restore Flight Controller connection from persisted state if appropriate
+    fc_manager: FCConnectionManager = app.state.fc_manager
+    state: ConnectionState = load_connection_state()
+
+    if state.is_connected and not state.user_disconnected:
+        if state.connection_type and state.baudrate is not None:
             try:
-                success = await fc_connection_manager.connect(
-                    fc_status["device"],
-                    fc_status["baud"]
+                await fc_manager.connect(
+                    connection_type=state.connection_type,
+                    params=state.params,
+                    baudrate=state.baudrate,
                 )
-                if success:
-                    logger.info(f"Successfully auto-reconnected to FC: {fc_status['device']} @ {fc_status['baud']}")
-                else:
-                    logger.warning(f"Failed to auto-reconnect to FC: {fc_status['device']} @ {fc_status['baud']}")
-                    # Update status to disconnected since connection failed
-                    services.save_fc_status(False, None, None)
-            except Exception as e:
-                logger.error(f"Error during FC auto-reconnect: {e}", exc_info=True)
-                # Update status to disconnected since connection failed
-                services.save_fc_status(False, None, None)
-        else:
-            logger.info("No previous FC connection found, skipping auto-reconnect")
-    except Exception as e:
-        logger.error(f"Error checking FC connection status on startup: {e}", exc_info=True)
+                # Update last_success on successful restore
+                state.is_connected = True
+                state.user_disconnected = False
+                save_connection_state(state)
+                logger.info("Restored Flight Controller connection from previous state")
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.error(
+                    "Failed to restore Flight Controller connection on startup: %s", exc
+                )
+                state.is_connected = False
+                save_connection_state(state)
+
+    # Start heartbeat watcher task
+    import asyncio
+
+    asyncio.create_task(heartbeat_watcher(fc_manager), name="fc_heartbeat_watcher")
 
 
 # Shutdown event - stop all monitors

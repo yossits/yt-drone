@@ -1,0 +1,10 @@
+{
+  "is_connected": false,
+  "user_disconnected": true,
+  "connection_type": "serial",
+  "params": {
+    "device": "/dev/serial0"
+  },
+  "baudrate": 57600,
+  "last_success": null
+}
