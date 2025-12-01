@@ -17,7 +17,10 @@ from typing import Any, Dict, Optional
 import serial  # type: ignore[import]
 from pymavlink import mavutil  # type: ignore[import]
 
+from datetime import datetime, timezone
+
 from .connection_state import ConnectionState, load_connection_state, save_connection_state
+from app.core.websocket import websocket_manager
 
 logger = logging.getLogger(__name__)
 
@@ -303,6 +306,24 @@ async def heartbeat_watcher(manager: FCConnectionManager) -> None:
             await manager.disconnect(user_requested=False)
 
 
+async def status_broadcast_loop(manager: FCConnectionManager, topic: str = "flight-controller-status") -> None:
+    """
+    Periodically broadcast the latest FC status over WebSocket.
+    """
+    logger.info("Starting flight controller status broadcast loop for topic '%s'", topic)
+    try:
+        while True:
+            await asyncio.sleep(2.0)
+            status = manager.get_status()
+            try:
+                await websocket_manager.broadcast(topic, status)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Failed to broadcast FC status: %s", exc)
+    except asyncio.CancelledError:
+        logger.info("Flight controller status broadcast loop cancelled")
+        raise
+
+
 def time_to_datetime(monotonic_time: float) -> Optional["datetime"]:
     """
     Helper to convert a monotonic timestamp into a real datetime.
@@ -310,8 +331,6 @@ def time_to_datetime(monotonic_time: float) -> Optional["datetime"]:
     Note: This is inherently approximate because monotonic time has no epoch;
     here we simply map \"now\" monotonic to wall clock now.
     """
-    from datetime import datetime, timezone
-
     # Map current monotonic to wall clock now
     now_wall = datetime.now(timezone.utc)
     return now_wall

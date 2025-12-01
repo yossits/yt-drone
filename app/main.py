@@ -33,6 +33,7 @@ from app.core.system import get_static_info, get_slow_dynamic_info, get_fast_dyn
 from app.modules.flight_controller.connection_manager import (
     FCConnectionManager,
     heartbeat_watcher,
+    status_broadcast_loop,
 )
 from app.modules.flight_controller.connection_state import (
     load_connection_state,
@@ -51,6 +52,7 @@ app = FastAPI(
 
 # Attach Flight Controller connection manager to app state
 app.state.fc_manager = FCConnectionManager()
+app.state.fc_tasks = []
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -130,10 +132,15 @@ async def startup_event():
                 state.is_connected = False
                 save_connection_state(state)
 
-    # Start heartbeat watcher task
+    # Start heartbeat watcher and WebSocket status broadcast tasks
     import asyncio
 
-    asyncio.create_task(heartbeat_watcher(fc_manager), name="fc_heartbeat_watcher")
+    heartbeat_task = asyncio.create_task(heartbeat_watcher(fc_manager), name="fc_heartbeat_watcher")
+    status_task = asyncio.create_task(
+        status_broadcast_loop(fc_manager),
+        name="fc_status_broadcast",
+    )
+    app.state.fc_tasks.extend([heartbeat_task, status_task])
 
 
 # Shutdown event - stop all monitors
@@ -142,3 +149,13 @@ async def shutdown_event():
     """Stop all monitors when application closes"""
     await monitor_manager.stop_all()
     print("All monitors stopped")
+
+    # Cancel FC background tasks
+    tasks = getattr(app.state, "fc_tasks", [])
+    for task in tasks:
+        task.cancel()
+    for task in tasks:
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass

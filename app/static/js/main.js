@@ -158,47 +158,57 @@ document.addEventListener("DOMContentLoaded", function () {
   const disconnectBtn = document.getElementById("fc-disconnect-btn");
   const typeSelect = document.getElementById("fc-connection-type");
   const baudSelect = document.getElementById("fc-baud-select");
+  const heartbeatContent = document.getElementById("fc-content-with-heartbeat");
+  const noHeartbeatContent = document.getElementById("fc-content-no-heartbeat");
+  const detailStatus = document.getElementById("fc-detail-connection-status");
+  const detailLastHeartbeat = document.getElementById("fc-detail-last-heartbeat");
+  const detailTimeSince = document.getElementById("fc-detail-time-since-heartbeat");
+  let statusSocket = null;
+  let statusReconnectTimer = null;
 
-  // Initialize connect button text based on backend status
-  async function initFcConnectButton() {
-    if (!connectBtn) {
+  function updateHeartbeatBlocks(statusData) {
+    if (!heartbeatContent || !noHeartbeatContent) {
       return;
     }
 
-    try {
-      const response = await fetch("/flight-controller/api/flight-controller/status");
-      if (!response.ok) {
-        console.error("Failed to fetch FC status for connect button init");
-        return;
-      }
-      const data = await response.json();
+    const connected = Boolean(statusData?.connected);
+    const lastHeartbeatAge = statusData?.last_heartbeat_age;
+    const hasHeartbeat = connected && typeof lastHeartbeatAge === "number" && lastHeartbeatAge < 10;
 
-      // אם יש חיבור פעיל – הכפתור צריך להיות Restart, אחרת Connect
-      if (data.connected) {
-        connectBtn.textContent = "Restart";
+    heartbeatContent.style.display = hasHeartbeat ? "block" : "none";
+    noHeartbeatContent.style.display = hasHeartbeat ? "none" : "block";
+
+    if (detailStatus) {
+      detailStatus.textContent = connected ? "Connected" : "Not Connected";
+    }
+
+    if (detailLastHeartbeat) {
+      if (typeof lastHeartbeatAge === "number") {
+        detailLastHeartbeat.textContent = hasHeartbeat ? "Active" : "Stale";
       } else {
-        connectBtn.textContent = "Connect";
+        detailLastHeartbeat.textContent = "Never Received";
       }
-    } catch (err) {
-      console.error("Error while initializing FC connect button:", err);
+    }
+
+    if (detailTimeSince) {
+      if (typeof lastHeartbeatAge === "number") {
+        detailTimeSince.textContent = `${lastHeartbeatAge.toFixed(1)} sec`;
+      } else {
+        detailTimeSince.textContent = "-";
+      }
     }
   }
 
-  // Initialize disconnect button state based on backend status
-  async function initFcDisconnectButton() {
-    if (!disconnectBtn) {
+  function applyStatusToUi(data) {
+    if (!data) {
       return;
     }
 
-    try {
-      const response = await fetch("/flight-controller/api/flight-controller/status");
-      if (!response.ok) {
-        console.error("Failed to fetch FC status for disconnect button init");
-        return;
-      }
-      const data = await response.json();
+    if (connectBtn) {
+      connectBtn.textContent = data.connected ? "Restart" : "Connect";
+    }
 
-      // If the system is not connected, make the Disconnect button disabled and semi-transparent
+    if (disconnectBtn) {
       if (!data.connected) {
         disconnectBtn.disabled = true;
         disconnectBtn.style.opacity = "0.5";
@@ -208,9 +218,75 @@ document.addEventListener("DOMContentLoaded", function () {
         disconnectBtn.style.opacity = "";
         disconnectBtn.style.cursor = "";
       }
-    } catch (err) {
-      console.error("Error while initializing FC disconnect button:", err);
     }
+
+    updateHeartbeatBlocks(data);
+  }
+
+  async function fetchInitialStatus() {
+    try {
+      const response = await fetch("/flight-controller/api/flight-controller/status");
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      applyStatusToUi(data);
+    } catch (err) {
+      console.error("Failed to fetch initial FC status:", err);
+    }
+  }
+
+  function scheduleStatusReconnect() {
+    if (statusReconnectTimer) {
+      return;
+    }
+    statusReconnectTimer = window.setTimeout(() => {
+      statusReconnectTimer = null;
+      connectStatusWebSocket();
+    }, 5000);
+  }
+
+  function connectStatusWebSocket() {
+    if (statusSocket) {
+      try {
+        statusSocket.close();
+      } catch (err) {
+        console.error("Error closing existing status socket:", err);
+      }
+    }
+
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${protocol}://${window.location.host}/ws/?topic=flight-controller-status`;
+    statusSocket = new WebSocket(wsUrl);
+
+    statusSocket.addEventListener("open", () => {
+      console.log("Flight Controller status WebSocket connected");
+    });
+
+    statusSocket.addEventListener("message", (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.topic === "flight-controller-status" && payload?.data) {
+          applyStatusToUi(payload.data);
+        }
+      } catch (err) {
+        console.error("Failed to parse FC status message:", err);
+      }
+    });
+
+    statusSocket.addEventListener("close", () => {
+      console.warn("Flight Controller status WebSocket closed, scheduling reconnect");
+      scheduleStatusReconnect();
+    });
+
+    statusSocket.addEventListener("error", (event) => {
+      console.error("Flight Controller status WebSocket error:", event);
+      try {
+        statusSocket.close();
+      } catch (err) {
+        console.error("Error closing socket after error:", err);
+      }
+    });
   }
 
   async function fcConnect() {
@@ -323,8 +399,8 @@ document.addEventListener("DOMContentLoaded", function () {
       fcConnect();
     });
 
-    // Set initial label on page load (Connect / Restart)
-    initFcConnectButton();
+    fetchInitialStatus();
+    connectStatusWebSocket();
   }
 
   if (disconnectBtn) {
@@ -332,8 +408,5 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       fcDisconnect();
     });
-
-    // Set initial state on page load
-    initFcDisconnectButton();
   }
 });
